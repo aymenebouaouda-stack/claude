@@ -32,6 +32,7 @@ EDL :
 Options par plan : "fit" (remplace celui de output), "filter" (filtre vidéo ffmpeg appliqué
 avant le cadrage, ex. éclaircir : "eq=brightness=0.06:gamma=1.3"), "gain_db" (gain manuel),
 "subs": false (pas de sous-titres sur ce plan, ex. paroles de chanson).
+Sous-titres : "min_prob" (ex. 0.45) saute les répliques dont la confiance Whisper moyenne est faible.
 Les plans extraits sont mis en cache (edit/cache_segments) : un re-rendu après retouche ne
 ré-encode que les plans modifiés.
 
@@ -165,7 +166,7 @@ def srt_time(t: float) -> str:
 
 
 def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out: Path,
-              fixes: dict | None = None) -> int:
+              fixes: dict | None = None, min_prob: float = 0.0) -> int:
     """Sous-titres sur la timeline de SORTIE : t_sortie = mot.start - plan.start + décalage_du_plan."""
     tdir = edl_path.parent / "transcripts"
     _, max_words, upper = SUB_STYLES[style]
@@ -190,6 +191,9 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
                 size = -(-len(g) // n)
                 for j in range(0, len(g), size):
                     chunk = g[j:j + size]
+                    probs = [x["prob"] for x in chunk if "prob" in x]
+                    if probs and sum(probs) / len(probs) < min_prob:
+                        continue  # transcription trop incertaine : mieux vaut pas de sous-titre qu'un faux
                     a = max(0.0, (chunk[0]["start"] - r["start"]) / speed) + offset
                     b = min(d, (chunk[-1]["end"] - r["start"]) / speed) + offset
                     txt = " ".join(x["text"] for x in chunk)
@@ -319,7 +323,7 @@ def main() -> None:
             if subs.get("file"):
                 srt = Path(subs["file"])
             elif subs.get("from_transcripts", True):
-                n = build_srt(edl, args.edl, durs, style, srt, subs.get("fixes"))
+                n = build_srt(edl, args.edl, durs, style, srt, subs.get("fixes"), float(subs.get("min_prob", 0)))
                 print(f"  sous-titres : {n} répliques → {srt}")
             esc = str(srt).replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
             vparts.append(f"[{cur}]subtitles='{esc}':force_style='{SUB_STYLES[style][0]}'[sub]")
