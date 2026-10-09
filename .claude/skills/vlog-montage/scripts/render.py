@@ -10,6 +10,7 @@ Ordre du pipeline (chaque étape a une raison) :
 EDL :
 {
   "output": {"width": 1080, "height": 1920, "fps": 30, "fit": "blur"},   # fit: fill | blur | pad | band
+  # blurzoom : image agrandie (hauteur "fg_height", défaut 0.42) côtés recadrés, fond flouté
   # band : bandeau face caméra sur fond noir (style TikTok « tuto ») ; réglages optionnels
   #        "band_top": 0.20, "band_height": 0.42 (fractions de la hauteur)
   "grade": "eq=contrast=1.05:saturation=1.08",                            # optionnel, filtre ffmpeg
@@ -90,6 +91,11 @@ def fit_filter(w: int, h: int, fit: str, o: dict | None = None) -> str:
         top = int(h * o.get("band_top", 0.20)) // 2 * 2
         return (f"scale={w}:{bh}:force_original_aspect_ratio=increase,crop={w}:{bh},"
                 f"pad={w}:{h}:0:{top}:black")
+    if fit == "blurzoom":  # image agrandie (hauteur = fg_height × H), côtés recadrés, sur fond flouté
+        fh = int(h * float(o.get("fg_height", 0.42))) // 2 * 2
+        return (f"split=2[bg][fg];[bg]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},"
+                f"boxblur=20:2[bgb];[fg]scale=-2:{fh},crop='min(iw,{w})':{fh}[fgs];"
+                f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2")
     if fit == "fill":  # recadrage plein cadre (centre)
         return f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
     if fit == "pad":  # bandes noires
@@ -191,12 +197,15 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
                 size = -(-len(g) // n)
                 for j in range(0, len(g), size):
                     chunk = g[j:j + size]
+                    first_of_group = j == 0
                     probs = [x["prob"] for x in chunk if "prob" in x]
                     if probs and sum(probs) / len(probs) < min_prob:
                         continue  # transcription trop incertaine : mieux vaut pas de sous-titre qu'un faux
                     a = max(0.0, (chunk[0]["start"] - r["start"]) / speed) + offset
                     b = min(d, (chunk[-1]["end"] - r["start"]) / speed) + offset
                     txt = " ".join(x["text"] for x in chunk)
+                    if first_of_group and txt[:1].islower() and not upper:
+                        txt = txt[0].upper() + txt[1:]
                     for bad, good in (fixes or {}).items():
                         txt = re.sub(rf"\b{bad}\b", good, txt, flags=re.IGNORECASE)
                     cues.append((a, max(b, a + 0.35), txt.upper() if upper else txt))

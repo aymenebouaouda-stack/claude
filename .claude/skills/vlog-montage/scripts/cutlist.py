@@ -116,6 +116,12 @@ def main() -> None:
         last_end[clip] = e
         rng = {"source": clip, "start": round(s, 3), "end": round(e, 3),
                **{k: v for k, v in c.items() if k not in ("clip", "from", "to")}}
+        if "fit" not in rng and r.get("width") and r.get("height"):
+            w_, h_ = r["width"], r["height"]
+            if int(c.get("rotate", 0)) % 180 == 90:
+                w_, h_ = h_, w_
+            if h_ > w_:  # rush vertical (après redressement) : plein cadre en sortie verticale
+                rng["fit"] = "fill"
         edl["ranges"].append(rng)
         d = (e - s) / float(c.get("speed", 1.0))
         total += d
