@@ -84,6 +84,13 @@ def has_audio(path: str) -> bool:
     return bool(out.stdout.strip())
 
 
+def blur_bg(w: int, h: int) -> str:
+    """Fond flouté calculé en 1/8 de résolution puis agrandi : même rendu, bien plus rapide."""
+    sw, sh = max(2, w // 8 // 2 * 2), max(2, h // 8 // 2 * 2)
+    return (f"[bg]scale={sw}:{sh}:force_original_aspect_ratio=increase,crop={sw}:{sh},"
+            f"boxblur=4:2,scale={w}:{h}:flags=bicubic,eq=brightness=-0.06")
+
+
 def fit_filter(w: int, h: int, fit: str, o: dict | None = None) -> str:
     o = o or {}
     if fit == "band":  # bandeau plein largeur sur fond noir
@@ -93,16 +100,14 @@ def fit_filter(w: int, h: int, fit: str, o: dict | None = None) -> str:
                 f"pad={w}:{h}:0:{top}:black")
     if fit == "blurzoom":  # image agrandie (hauteur = fg_height × H), côtés recadrés, sur fond flouté
         fh = int(h * float(o.get("fg_height", 0.42))) // 2 * 2
-        return (f"split=2[bg][fg];[bg]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},"
-                f"boxblur=20:2[bgb];[fg]scale=-2:{fh},crop='min(iw,{w})':{fh}[fgs];"
+        return (f"split=2[bg][fg];{blur_bg(w, h)}[bgb];[fg]scale=-2:{fh},crop='min(iw,{w})':{fh}[fgs];"
                 f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2")
     if fit == "fill":  # recadrage plein cadre (centre)
         return f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
     if fit == "pad":  # bandes noires
         return f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2"
     # blur : image entière au centre sur un fond flouté de la même image
-    return (f"split=2[bg][fg];[bg]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},"
-            f"boxblur=20:2[bgb];[fg]scale={w}:{h}:force_original_aspect_ratio=decrease[fgs];"
+    return (f"split=2[bg][fg];{blur_bg(w, h)}[bgb];[fg]scale={w}:{h}:force_original_aspect_ratio=decrease[fgs];"
             f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2")
 
 
