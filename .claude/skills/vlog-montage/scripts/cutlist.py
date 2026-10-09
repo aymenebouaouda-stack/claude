@@ -96,6 +96,8 @@ def main() -> None:
             if isinstance(v, (int, float)):
                 return float(v)
             hit = find(words, v, after if is_start else start_hint, not is_start)
+            if not hit and is_start and after:  # passage déjà utilisé plus tôt (ex. accroche) : chercher depuis le début
+                hit = find(words, v, 0.0, False)
             if not hit:
                 errors.append(f"{clip} : « {v} » introuvable")
                 return after if is_start else r["duration"]
