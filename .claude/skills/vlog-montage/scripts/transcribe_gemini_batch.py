@@ -23,7 +23,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from transcribe_gemini import API, SCHEMA, Busy, api_key, call, upload  # noqa: E402
+from transcribe_gemini import API, SCHEMA, Busy, api_key, call, generate, upload  # noqa: E402
 
 SR = 16000
 GAP_BEFORE, BEEP, GAP_AFTER = 0.8, 0.5, 0.7
@@ -74,7 +74,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("videos", nargs="+", type=Path)
     ap.add_argument("--edit-dir", type=Path, required=True)
-    ap.add_argument("--max-min", type=float, default=8.0, help="Durée audio max par lot (min)")
+    ap.add_argument("--max-min", type=float, default=5.0, help="Durée audio max par lot (min)")
     ap.add_argument("--model", default="gemini-3.8-flash")
     ap.add_argument("--fallback", nargs="*", default=["gemini-2.5-flash", "gemini-3.5-flash"])
     ap.add_argument("--language", default="fr")
@@ -94,7 +94,7 @@ def main() -> None:
         cur_d += d
     if cur:
         batches.append(cur)
-    print(f"{len(todo)} rushes à transcrire en {len(batches)} requête(s)")
+    print(f"{len(todo)} rushes à transcrire en {len(batches)} requête(s)", flush=True)
     key = api_key()
 
     for bi, batch in enumerate(batches, 1):
@@ -118,22 +118,26 @@ def main() -> None:
                 raw, used = None, None
                 for model in [args.model, *args.fallback]:
                     try:
-                        _, raw = call("POST", f"{API}/v1beta/models/{model}:generateContent", key,
-                                      json.dumps(body).encode(), {"Content-Type": "application/json"}, tries=3)
+                        raw, usage = generate(model, body, key)
                         used = model
                         break
                     except Busy as e:
                         print(f"  {model} indisponible ({str(e)[:120]}) → suivant")
                 if raw is None:
-                    raise SystemExit(f"lot {bi} : tous les modèles sont indisponibles/épuisés ; réessayer plus tard")
+                    print(f"lot {bi} : tous les modèles sont indisponibles/épuisés ; lot ignoré (relancer plus tard)",
+                          flush=True)
+                    continue
             finally:
                 try:
                     call("DELETE", f"{API}/v1beta/{f['name']}", key, tries=2)
                 except Busy:
                     pass
 
-        resp = json.loads(raw)
-        segs = json.loads(resp["candidates"][0]["content"]["parts"][0]["text"])["segments"]
+        try:
+            segs = json.loads(raw)["segments"]
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"lot {bi} : réponse illisible ({e}) ; lot ignoré", flush=True)
+            continue
         model_beeps = [float(s["start"]) for s in segs if "BIP" in s["text"].upper() and len(s["text"]) < 12]
         true_beeps = [c["beep"] for c in layout]
         ok = len(model_beeps) == len(true_beeps)
@@ -170,7 +174,7 @@ def main() -> None:
                 encoding="utf-8")
         print(f"lot {bi}/{len(batches)} : {len(batch)} rushes, modèle {used}, bips {len(model_beeps)}/"
               f"{len(true_beeps)} {'(recalé)' if ok else '(NON recalé)'}, "
-              f"tokens {resp.get('usageMetadata', {}).get('totalTokenCount', '?')}")
+              f"tokens {usage.get('totalTokenCount', '?')}", flush=True)
 
 
 if __name__ == "__main__":

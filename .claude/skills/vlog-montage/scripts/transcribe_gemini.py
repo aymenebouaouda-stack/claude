@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import subprocess
@@ -62,11 +63,48 @@ def call(method: str, url: str, key: str, body: bytes | None = None, headers: di
                     continue
                 raise Busy(f"Gemini HTTP {e.code} : {msg[:200]}")
             raise SystemExit(f"Gemini HTTP {e.code} : {msg}")
-        except (urllib.error.URLError, TimeoutError) as e:
+        except (urllib.error.URLError, TimeoutError, http.client.HTTPException, ConnectionError) as e:
             if attempt < tries - 1:
                 time.sleep(15)
                 continue
             raise Busy(f"réseau : {e}")
+    raise Busy("échec après plusieurs essais")
+
+
+def generate(model: str, body: dict, key: str, tries: int = 3) -> tuple[str, dict]:
+    """generateContent en streaming (SSE) : des octets arrivent en continu, ce qui évite les
+    coupures de connexion inactive sur les longues requêtes. Renvoie (texte, usageMetadata)."""
+    url = f"{API}/v1beta/models/{model}:streamGenerateContent?alt=sse"
+    data = json.dumps(body).encode()
+    for attempt in range(tries):
+        req = urllib.request.Request(url, data=data, method="POST",
+                                     headers={"x-goog-api-key": key, "Content-Type": "application/json"})
+        try:
+            text, usage = [], {}
+            with urllib.request.urlopen(req, timeout=900) as r:
+                for raw in r:
+                    line = raw.decode("utf-8", "replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    chunk = json.loads(line[5:])
+                    for c in chunk.get("candidates", []):
+                        for part in c.get("content", {}).get("parts", []):
+                            if "text" in part and not part.get("thought"):
+                                text.append(part["text"])
+                    usage = chunk.get("usageMetadata", usage)
+            return "".join(text), usage
+        except urllib.error.HTTPError as e:
+            msg = e.read()[:800].decode(errors="replace")
+            if e.code in (429, 500, 503):
+                if "quota" in msg.lower() or attempt == tries - 1:
+                    raise Busy(f"Gemini HTTP {e.code} : {msg[:300]}")
+                time.sleep(20 * 2 ** attempt)
+                continue
+            raise SystemExit(f"Gemini HTTP {e.code} : {msg}")
+        except (urllib.error.URLError, TimeoutError, http.client.HTTPException, ConnectionError) as e:
+            if attempt == tries - 1:
+                raise Busy(f"réseau : {e!r}")
+            time.sleep(20)
     raise Busy("échec après plusieurs essais")
 
 
@@ -148,8 +186,7 @@ def main() -> None:
             raw, used = None, None
             for model in [args.model, *args.fallback]:
                 try:
-                    _, raw = call("POST", f"{API}/v1beta/models/{model}:generateContent", key,
-                                  json.dumps(body).encode(), {"Content-Type": "application/json"})
+                    raw, usage = generate(model, body, key)
                     used = model
                     break
                 except Busy as e:
@@ -162,9 +199,7 @@ def main() -> None:
             except Busy:
                 print("suppression du fichier distant impossible (expire seul sous 48 h)")
 
-    resp = json.loads(raw)
-    text = resp["candidates"][0]["content"]["parts"][0]["text"]
-    data = json.loads(text)
+    data = json.loads(raw)
     words = []
     for seg in data["segments"]:
         toks = seg["text"].split()
@@ -185,7 +220,6 @@ def main() -> None:
     lines = [f"[{s['start']:07.2f}-{s['end']:07.2f}] {s.get('speaker') or ''} {s['text']}".replace("  ", " ")
              for s in data["segments"]]
     (out_dir / f"{args.video.stem}.txt").write_text("\n".join(lines), encoding="utf-8")
-    usage = resp.get("usageMetadata", {})
     print(f"{len(data['segments'])} segments, {len(words)} mots → {out_json} "
           f"(tokens : {usage.get('totalTokenCount', '?')})")
 
