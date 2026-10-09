@@ -1,0 +1,81 @@
+"""Transcription locale (faster-whisper, CPU) avec horodatage au mot, mise en cache.
+
+Sortie : <edit_dir>/transcripts/<nom_du_rush>.json
+    {"source": ..., "language": "fr", "words": [{"type": "word", "text": "...", "start": s, "end": s}, ...]}
+et un résumé lisible <edit_dir>/transcripts/<nom_du_rush>.txt (phrases coupées sur les pauses ≥ 0.5 s).
+
+Limite connue : Whisper a tendance à supprimer les hésitations (« euh », « hum »).
+Pour les repérer, croiser avec silences.py et vérifier à l'image.
+
+Prérequis : `pip install faster-whisper` et accès réseau à huggingface.co au premier
+lancement (téléchargement du modèle), ou --model <chemin_local_du_modèle>.
+
+Usage:
+    python3 transcribe_local.py <video> --edit-dir <edit_dir> [--model small] [--language fr]
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import tempfile
+from pathlib import Path
+
+
+def phrases(words: list[dict], gap: float = 0.5) -> list[tuple[float, float, str]]:
+    out, cur = [], []
+    for w in words:
+        if cur and w["start"] - cur[-1]["end"] >= gap:
+            out.append((cur[0]["start"], cur[-1]["end"], " ".join(x["text"] for x in cur)))
+            cur = []
+        cur.append(w)
+    if cur:
+        out.append((cur[0]["start"], cur[-1]["end"], " ".join(x["text"] for x in cur)))
+    return out
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("video", type=Path)
+    ap.add_argument("--edit-dir", type=Path, required=True)
+    ap.add_argument("--model", default="small", help="tiny/base/small/medium/large-v3 ou chemin local")
+    ap.add_argument("--language", default=None, help="ex. fr ; auto-détection si absent")
+    ap.add_argument("--force", action="store_true", help="Ignorer le cache")
+    args = ap.parse_args()
+
+    out_dir = args.edit_dir / "transcripts"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_json = out_dir / f"{args.video.stem}.json"
+    if out_json.exists() and not args.force:
+        print(f"cache : {out_json}")
+        return
+
+    from faster_whisper import WhisperModel  # import tardif : seul ce script en dépend
+
+    with tempfile.TemporaryDirectory() as tmp:
+        wav = Path(tmp) / "a.wav"
+        subprocess.run(["ffmpeg", "-v", "error", "-i", str(args.video), "-vn", "-ac", "1",
+                        "-ar", "16000", "-y", str(wav)], check=True)
+        model = WhisperModel(args.model, device="cpu", compute_type="int8")
+        segments, info = model.transcribe(
+            str(wav), language=args.language, word_timestamps=True, vad_filter=False,
+            # Invite à garder les hésitations ; sans garantie, Whisper peut les omettre.
+            initial_prompt="Euh, alors, hum, en fait, du coup… Voilà.",
+        )
+        words = []
+        for seg in segments:
+            for w in seg.words or []:
+                words.append({"type": "word", "text": w.word.strip(),
+                              "start": round(w.start, 3), "end": round(w.end, 3),
+                              "prob": round(w.probability, 3)})
+
+    out_json.write_text(json.dumps({"source": str(args.video.resolve()), "language": info.language,
+                                    "words": words}, ensure_ascii=False, indent=1))
+    lines = [f"[{a:07.2f}-{b:07.2f}] {t}" for a, b, t in phrases(words)]
+    (out_dir / f"{args.video.stem}.txt").write_text("\n".join(lines), encoding="utf-8")
+    print(f"{len(words)} mots, langue {info.language} → {out_json}")
+
+
+if __name__ == "__main__":
+    main()
