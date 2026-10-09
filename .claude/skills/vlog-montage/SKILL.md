@@ -43,11 +43,22 @@ Tous les fichiers de travail vont dans `<dossier_rushes>/edit/`. Ne jamais modif
 
 ## Processus
 
-### 1. Inventaire
+### 1. Récupération, tri chronologique, inventaire
+- Gros envois (> 30 Mo) : lien Google Drive partagé « Tous les utilisateurs disposant du lien »,
+  téléchargé avec `gdown` (pip). Nécessite `drive.google.com` et `drive.usercontent.google.com`
+  dans les domaines autorisés de l'environnement. Le connecteur Google Drive ne convient pas aux
+  vidéos : il renvoie le contenu dans la conversation, pas sur le disque.
+  `gdown <ID_DU_FICHIER> -O <dossier>/rushes.zip && unzip -q <dossier>/rushes.zip -d <dossier>/rushes`
+  (`unzip` conserve les dates de fichiers ; vérifier l'espace disque avant).
+- Ordre de tournage : `organize_rushes.py <rushes> -o <rushes>/edit` → `edit/ordered/NNN_…`
+  (liens) + `edit/rushes.md`. Date iPhone > date du conteneur > date du fichier (« incertaine »).
+  Faire valider l'ordre par l'utilisateur s'il y a des dates incertaines.
 ```bash
 python3 -I scripts/inventory.py <rushes> -o <rushes>/edit/inventory.json
 ```
 Durée, résolution, fps, orientation (rotation téléphone incluse), audio, HDR.
+Plan filmé de travers (contenu tourné, pas seulement la métadonnée) : le repérer sur la planche
+contact, puis `"rotate": 90|180|270` sur le plan dans l'EDL.
 
 ### 2. Repérage
 - Parole : `transcribe_local.py <video> --edit-dir <rushes>/edit --language fr`

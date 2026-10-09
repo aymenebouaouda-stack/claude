@@ -16,7 +16,8 @@ EDL :
   "sources": {"A": "/abs/rush1.mp4", "B": "/abs/rush2.mp4"},
   "ranges": [
     {"source": "A", "start": 12.40, "end": 15.10, "beat": "HOOK", "note": "..."},
-    {"source": "B", "start": 3.00, "end": 6.00, "beat": "BROLL", "mute": true, "speed": 1.0}
+    {"source": "B", "start": 3.00, "end": 6.00, "beat": "BROLL", "mute": true, "speed": 1.0,
+     "rotate": 90}                                       # rotate : 90 | 180 | 270 (sens horaire)
   ],
   "music": {"file": "/abs/musique.mp3", "volume_db": -20, "duck": true},  # optionnel
   "titles": [                                                               # optionnel
@@ -94,6 +95,10 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
     speed = float(r.get("speed", 1.0))
     dur = (r["end"] - r["start"]) / speed
     vf = fit_filter(w, h, o.get("fit", "blur"), o)
+    # Redressement d'un plan filmé de travers (rotation du CONTENU, en degrés horaires)
+    rot = int(r.get("rotate", 0)) % 360
+    if rot:
+        vf = {90: "transpose=1", 180: "hflip,vflip", 270: "transpose=2"}[rot] + "," + vf
     if speed != 1.0:
         vf = f"setpts=PTS/{speed}," + vf
     if edl.get("grade"):
