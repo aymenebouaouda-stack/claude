@@ -61,12 +61,23 @@ def main() -> None:
     ap.add_argument("--hold", type=float, default=1.5, help="pause finale (s)")
     ap.add_argument("--font", default=FONT)
     ap.add_argument("--bg", type=Path, help="Image ou vidéo de fond (assombrie)")
+    ap.add_argument("--bg-start", type=float, default=0.0, help="Début dans la vidéo de fond (s)")
+    ap.add_argument("--bg-rotate", type=int, default=0, help="Rotation du fond : 90|180|270")
+    ap.add_argument("--bg-sound", type=float, default=0.0,
+                    help="Garder le son du fond à ce volume (0 = muet, 0.3 = ambiance discrète)")
     ap.add_argument("--seed", type=int, default=7)
     args = ap.parse_args()
 
     W, H = (int(x) for x in args.size.split("x"))
     rng = random.Random(args.seed)
-    fonts = [ImageFont.truetype(args.font, int(W * (0.075 if i == 0 else 0.045))) for i in range(len(args.lines))]
+    fonts = []
+    for i, line in enumerate(args.lines):  # taille visée, réduite si la ligne dépasse 88 % de la largeur
+        size = int(W * (0.075 if i == 0 else 0.052))
+        f = ImageFont.truetype(args.font, size)
+        while f.getlength(line) > W * 0.88 and size > 10:
+            size -= 2
+            f = ImageFont.truetype(args.font, size)
+        fonts.append(f)
 
     # Planning des frappes : (temps, ligne, nb_caractères visibles)
     events, t = [], 0.6
@@ -122,13 +133,19 @@ def main() -> None:
         cmd = ["ffmpeg", "-v", "error"]
         if args.bg:
             loop = ["-loop", "1"] if args.bg.suffix.lower() in (".png", ".jpg", ".jpeg") else ["-stream_loop", "-1"]
-            cmd += [*loop, "-t", f"{total:.3f}", "-i", str(args.bg)]
+            cmd += [*loop, "-ss", f"{args.bg_start:.3f}", "-t", f"{total:.3f}", "-i", str(args.bg)]
         cmd += ["-framerate", str(args.fps), "-i", str(tmp / "f%05d.png"), "-i", str(wav)]
         if args.bg:
-            fc = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-                  f"eq=brightness=-0.25:saturation=0.6,boxblur=6:1,fps={args.fps}[bg];[bg][1:v]overlay=0:0,"
+            rot = {90: "transpose=1,", 180: "hflip,vflip,", 270: "transpose=2,"}.get(args.bg_rotate % 360, "")
+            fc = (f"[0:v]{rot}scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+                  f"eq=brightness=-0.10:saturation=0.65,drawbox=x=0:y=0:w=iw:h=ih:color=black@0.5:t=fill,"
+                  f"boxblur=6:1,fps={args.fps}[bg];[bg][1:v]overlay=0:0,"
                   f"format=yuv420p[v]")
             amap = "2:a"
+            if args.bg_sound > 0:
+                fc += (f";[0:a]volume={args.bg_sound},aresample=48000[bga];[2:a]aresample=48000[ka];"
+                       f"[bga][ka]amix=inputs=2:duration=shortest:normalize=0[am]")
+                amap = "[am]"
         else:
             fc = "[0:v]format=yuv420p[v]"
             amap = "1:a"

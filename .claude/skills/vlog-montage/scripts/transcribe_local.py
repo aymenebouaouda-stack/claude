@@ -20,10 +20,29 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import tempfile
 import time
 from pathlib import Path
+
+
+# Hallucinations typiques de Whisper sur musique/silence (génériques de sous-titreurs, etc.)
+HALLU = re.compile(r"sous-titr|amara\.org|radio-canada|merci d'avoir regard|abonnez-vous|"
+                   r"sous titres|st' ?501|j[ée]r[ée]my diaz", re.IGNORECASE)
+
+
+def clean(words: list[dict]) -> list[dict]:
+    """Retire les phrases (groupes séparés par ≥ 0.5 s) qui ressemblent à une hallucination."""
+    out, cur = [], []
+    for w in words + [None]:
+        if cur and (w is None or w["start"] - cur[-1]["end"] >= 0.5):
+            if not HALLU.search(" ".join(x["text"] for x in cur)):
+                out += cur
+            cur = []
+        if w is not None:
+            cur.append(w)
+    return out
 
 
 def phrases(words: list[dict], gap: float = 0.5) -> list[tuple[float, float, str]]:
@@ -48,9 +67,24 @@ def main() -> None:
     ap.add_argument("--prompt", default="", help="Noms propres/lieux pour l'orthographe")
     ap.add_argument("--threads", type=int, default=0, help="Threads CPU (0 = auto)")
     ap.add_argument("--force", action="store_true", help="Ignorer le cache")
+    ap.add_argument("--clean-only", action="store_true",
+                    help="Nettoie les transcriptions existantes (hallucinations) sans retranscrire")
     args = ap.parse_args()
 
     out_dir = args.edit_dir / "transcripts"
+    if args.clean_only:
+        for v in args.videos:
+            f = out_dir / f"{v.stem}.json"
+            if f.exists():
+                d = json.loads(f.read_text())
+                before = len(d["words"])
+                d["words"] = clean(d["words"])
+                f.write_text(json.dumps(d, ensure_ascii=False, indent=1))
+                (out_dir / f"{v.stem}.txt").write_text(
+                    "\n".join(f"[{a:07.2f}-{b:07.2f}] {t}" for a, b, t in phrases(d["words"])), encoding="utf-8")
+                if before != len(d["words"]):
+                    print(f"{v.name} : {before - len(d['words'])} mot(s) halluciné(s) retiré(s)")
+        return
     out_dir.mkdir(parents=True, exist_ok=True)
 
     def cached(v: Path) -> bool:
@@ -100,6 +134,7 @@ def main() -> None:
                     words.append({"type": "word", "text": w.word.strip(),
                                   "start": round(w.start, 3), "end": round(w.end, 3),
                                   "prob": round(w.probability, 3)})
+        words = clean(words)
         out_json = out_dir / f"{video.stem}.json"
         out_json.write_text(json.dumps({"source": str(video.resolve()), "engine": "whisper", "model": args.model,
                                         "language": info.language, "words": words},
