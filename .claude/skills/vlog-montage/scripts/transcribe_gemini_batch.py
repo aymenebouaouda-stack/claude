@@ -19,6 +19,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 import tempfile
 from pathlib import Path
 
@@ -76,7 +77,8 @@ def main() -> None:
     ap.add_argument("--edit-dir", type=Path, required=True)
     ap.add_argument("--max-min", type=float, default=5.0, help="Durée audio max par lot (min)")
     ap.add_argument("--model", default="gemini-3.8-flash")
-    ap.add_argument("--fallback", nargs="*", default=["gemini-2.5-flash", "gemini-3.5-flash"])
+    ap.add_argument("--fallback", nargs="*", default=["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.5-flash"])
+    ap.add_argument("--wait-rounds", type=int, default=4, help="Si tous les modèles sont saturés : nb de nouvelles tentatives (pause 3 min)")
     ap.add_argument("--language", default="fr")
     ap.add_argument("--context", default="")
     args = ap.parse_args()
@@ -116,13 +118,18 @@ def main() -> None:
                         "generationConfig": {"temperature": 0, "response_mime_type": "application/json",
                                              "response_schema": SCHEMA}}
                 raw, used = None, None
-                for model in [args.model, *args.fallback]:
-                    try:
-                        raw, usage = generate(model, body, key)
-                        used = model
+                for rnd in range(args.wait_rounds + 1):
+                    for model in [args.model, *args.fallback]:
+                        try:
+                            raw, usage = generate(model, body, key)
+                            used = model
+                            break
+                        except Busy as e:
+                            print(f"  {model} indisponible ({str(e)[:100].replace(chr(10), ' ')}) → suivant", flush=True)
+                    if raw is not None or rnd == args.wait_rounds:
                         break
-                    except Busy as e:
-                        print(f"  {model} indisponible ({str(e)[:120]}) → suivant")
+                    print(f"  tous saturés, nouvelle tentative dans 3 min ({rnd + 1}/{args.wait_rounds})", flush=True)
+                    time.sleep(180)
                 if raw is None:
                     print(f"lot {bi} : tous les modèles sont indisponibles/épuisés ; lot ignoré (relancer plus tard)",
                           flush=True)

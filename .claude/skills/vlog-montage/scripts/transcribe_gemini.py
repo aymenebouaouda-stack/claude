@@ -100,6 +100,8 @@ def generate(model: str, body: dict, key: str, tries: int = 3) -> tuple[str, dic
                     raise Busy(f"Gemini HTTP {e.code} : {msg[:300]}")
                 time.sleep(20 * 2 ** attempt)
                 continue
+            if e.code in (400, 404):  # modèle inexistant/retiré ou option non prise en charge → modèle suivant
+                raise Busy(f"Gemini HTTP {e.code} : {msg[:300]}")
             raise SystemExit(f"Gemini HTTP {e.code} : {msg}")
         except (urllib.error.URLError, TimeoutError, http.client.HTTPException, ConnectionError) as e:
             if attempt == tries - 1:
@@ -147,7 +149,7 @@ def main() -> None:
     ap.add_argument("video", type=Path)
     ap.add_argument("--edit-dir", type=Path, required=True)
     ap.add_argument("--model", default="gemini-3.5-flash")
-    ap.add_argument("--fallback", nargs="*", default=["gemini-3.8-flash", "gemini-2.5-flash"],
+    ap.add_argument("--fallback", nargs="*", default=["gemini-3.8-flash", "gemini-3.6-flash", "gemini-flash-latest"],
                     help="Modèles essayés si le principal est surchargé")
     ap.add_argument("--language", default="fr")
     ap.add_argument("--context", default="", help="Noms propres et lieux pour l'orthographe")
