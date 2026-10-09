@@ -24,8 +24,16 @@ EDL :
     {"text": "LES TROIS\nOUTILS", "start": 14.8, "end": 16.4, "y": 0.10, "size": 0.12,
      "font": "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf", "condense": 0.75}
   ],
-  "subtitles": {"from_transcripts": true, "style": "bold"}                  # bold | natural | serif
+  "subtitles": {"from_transcripts": true, "style": "bold",                 # bold | natural | serif | vlog
+                "fixes": {"nazi": "Nazim"}},                              # corrections mot à mot (regex \b)
+  "normalize_audio": -18,      # optionnel : chaque plan ramené à ~-18 LUFS (gain mesuré, borné)
+  "jobs": 2                    # optionnel : plans extraits en parallèle
 }
+Options par plan : "fit" (remplace celui de output), "filter" (filtre vidéo ffmpeg appliqué
+avant le cadrage, ex. éclaircir : "eq=brightness=0.06:gamma=1.3"), "gain_db" (gain manuel),
+"subs": false (pas de sous-titres sur ce plan, ex. paroles de chanson).
+Les plans extraits sont mis en cache (edit/cache_segments) : un re-rendu après retouche ne
+ré-encode que les plans modifiés.
 
 Usage:
     python3 render.py <edl.json> -o <edit_dir>/final.mp4 [--preview]
@@ -34,10 +42,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 FADE = 0.03
@@ -52,6 +62,9 @@ SUB_STYLES = {
     # posé sous le bandeau face caméra (fit "band").
     "serif": ("FontName=Liberation Serif,FontSize=15,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
               "BorderStyle=1,Outline=0.6,Shadow=0,Alignment=2,MarginV=60", 3, False),
+    # Vlog long format portrait : casse normale, gras, contour + ombre, 4 mots max, tiers bas.
+    "vlog": ("FontName=DejaVu Sans,FontSize=12,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
+             "BackColour=&H80000000,BorderStyle=1,Outline=1.6,Shadow=0.8,Alignment=2,MarginV=70", 4, False),
 }
 TITLE_FONT = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
 
@@ -86,6 +99,17 @@ def fit_filter(w: int, h: int, fit: str, o: dict | None = None) -> str:
             f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2")
 
 
+def range_loudness(src: str, start: float, end: float) -> float | None:
+    """Loudness intégrée (LUFS) d'une plage de la source, ou None si silence/mesure impossible."""
+    log = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
+                          "-i", src, "-vn", "-af", "ebur128", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    m = re.findall(r"I:\s+(-?[\d.]+) LUFS", log)
+    if not m or float(m[-1]) < -60:
+        return None
+    return float(m[-1])
+
+
 def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
     o = edl["output"]
     w, h, fps = o["width"], o["height"], o.get("fps", 30)
@@ -94,7 +118,9 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
     src = edl["sources"][r["source"]]
     speed = float(r.get("speed", 1.0))
     dur = (r["end"] - r["start"]) / speed
-    vf = fit_filter(w, h, o.get("fit", "blur"), o)
+    vf = fit_filter(w, h, r.get("fit", o.get("fit", "blur")), o)
+    if r.get("filter"):
+        vf = r["filter"] + "," + vf
     # Redressement d'un plan filmé de travers (rotation du CONTENU, en degrés horaires)
     rot = int(r.get("rotate", 0)) % 360
     if rot:
@@ -115,11 +141,18 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
         af = "anull"
     else:
         amap = "0:a:0"
+        gain = r.get("gain_db")
+        if gain is None and edl.get("normalize_audio") is not None:
+            lufs = range_loudness(src, r["start"], r["end"])
+            if lufs is not None:
+                gain = max(-12.0, min(15.0, float(edl["normalize_audio"]) - lufs))
+        if gain:
+            af = f"volume={gain:.2f}dB,alimiter=limit=0.95:level=false," + af
     cmd += ["-filter_complex", f"[0:v]{vf}[v];[{amap}]{af},aresample=48000,"
                                f"aformat=channel_layouts=stereo[a]",
             "-map", "[v]", "-map", "[a]", "-t", f"{dur:.3f}",
-            "-c:v", "libx264", "-preset", "veryfast" if preview else "medium",
-            "-crf", "23" if preview else "18", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+            "-c:v", "libx264", "-preset", "veryfast" if preview else o.get("preset", "medium"),
+            "-crf", "23" if preview else str(o.get("crf", 18)), "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
             # même base de temps pour tous les plans → concaténation propre
             "-video_track_timescale", str(int(round(fps * 1000))), "-y", str(out)]
     run(cmd)
@@ -131,7 +164,8 @@ def srt_time(t: float) -> str:
     return f"{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}"
 
 
-def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out: Path) -> int:
+def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out: Path,
+              fixes: dict | None = None) -> int:
     """Sous-titres sur la timeline de SORTIE : t_sortie = mot.start - plan.start + décalage_du_plan."""
     tdir = edl_path.parent / "transcripts"
     _, max_words, upper = SUB_STYLES[style]
@@ -139,7 +173,7 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
     for r, d in zip(edl["ranges"], durations):
         speed = float(r.get("speed", 1.0))
         tfile = tdir / f"{Path(edl['sources'][r['source']]).stem}.json"
-        if not r.get("mute") and tfile.exists():
+        if not r.get("mute") and r.get("subs", True) and tfile.exists():
             words = [w for w in json.loads(tfile.read_text())["words"]
                      if w["start"] >= r["start"] - 0.05 and w["end"] <= r["end"] + 0.05]
             # 1) groupes naturels : coupure sur ponctuation ou pause ≥ 0.3 s
@@ -159,6 +193,8 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
                     a = max(0.0, (chunk[0]["start"] - r["start"]) / speed) + offset
                     b = min(d, (chunk[-1]["end"] - r["start"]) / speed) + offset
                     txt = " ".join(x["text"] for x in chunk)
+                    for bad, good in (fixes or {}).items():
+                        txt = re.sub(rf"\b{bad}\b", good, txt, flags=re.IGNORECASE)
                     cues.append((a, max(b, a + 0.35), txt.upper() if upper else txt))
         offset += d
     # éviter les chevauchements créés par la durée minimale
@@ -212,13 +248,27 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        parts, durs = [], []
-        for i, r in enumerate(edl["ranges"]):
-            p = tmp / f"seg{i:04d}.mp4"
-            durs.append(extract(edl, i, r, p, args.preview))
-            parts.append(p)
-            print(f"  plan {i + 1}/{len(edl['ranges'])} {r['source']} {r['start']:.2f}-{r['end']:.2f} "
-                  f"({r.get('beat', '')})")
+        cache = args.edl.parent / "cache_segments"
+        cache.mkdir(exist_ok=True)
+        common = {k: edl.get(k) for k in ("output", "grade", "normalize_audio")}
+
+        def one(i: int, r: dict) -> tuple[Path, float]:
+            key = hashlib.sha1(json.dumps([r, common, edl["sources"][r["source"]], args.preview, 2],
+                                          sort_keys=True).encode()).hexdigest()[:16]
+            p = cache / f"{key}.mp4"
+            speed = float(r.get("speed", 1.0))
+            if not p.exists():
+                part = p.with_suffix(".part.mp4")
+                extract(edl, i, r, part, args.preview)
+                part.rename(p)
+                print(f"  plan {i + 1}/{len(edl['ranges'])} {r['source']} {r['start']:.2f}-{r['end']:.2f} "
+                      f"({r.get('beat', '')})", flush=True)
+            return p, (r["end"] - r["start"]) / speed
+
+        with ThreadPoolExecutor(int(edl.get("jobs", 2))) as ex:
+            results = list(ex.map(lambda ir: one(*ir), enumerate(edl["ranges"])))
+        parts = [p for p, _ in results]
+        durs = [d for _, d in results]
         lst = tmp / "list.txt"
         lst.write_text("".join(f"file '{p}'\n" for p in parts))
         base = tmp / "base.mp4"
@@ -269,7 +319,7 @@ def main() -> None:
             if subs.get("file"):
                 srt = Path(subs["file"])
             elif subs.get("from_transcripts", True):
-                n = build_srt(edl, args.edl, durs, style, srt)
+                n = build_srt(edl, args.edl, durs, style, srt, subs.get("fixes"))
                 print(f"  sous-titres : {n} répliques → {srt}")
             esc = str(srt).replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
             vparts.append(f"[{cur}]subtitles='{esc}':force_style='{SUB_STYLES[style][0]}'[sub]")
