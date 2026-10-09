@@ -4,12 +4,14 @@ Ordre du pipeline (chaque étape a une raison) :
   1. Extraction plan par plan, ré-encodée au format de sortie (cadrage, fps, étalonnage)
      avec un fondu audio de 30 ms à chaque bord → pas de « clic » aux coupes.
   2. Concaténation sans ré-encodage (-c copy) → une seule génération de compression.
-  3. Passe finale : musique (ducking sous la voix) puis sous-titres EN DERNIER
-     (sinon un élément superposé les masque), puis normalisation -14 LUFS / -1 dBTP.
+  3. Passe finale : musique (ducking sous la voix), titres incrustés, puis sous-titres
+     EN DERNIER (sinon un élément superposé les masque), normalisation -14 LUFS / -1 dBTP.
 
 EDL :
 {
-  "output": {"width": 1080, "height": 1920, "fps": 30, "fit": "blur"},   # fit: fill | blur | pad
+  "output": {"width": 1080, "height": 1920, "fps": 30, "fit": "blur"},   # fit: fill | blur | pad | band
+  # band : bandeau face caméra sur fond noir (style TikTok « tuto ») ; réglages optionnels
+  #        "band_top": 0.20, "band_height": 0.42 (fractions de la hauteur)
   "grade": "eq=contrast=1.05:saturation=1.08",                            # optionnel, filtre ffmpeg
   "sources": {"A": "/abs/rush1.mp4", "B": "/abs/rush2.mp4"},
   "ranges": [
@@ -17,7 +19,11 @@ EDL :
     {"source": "B", "start": 3.00, "end": 6.00, "beat": "BROLL", "mute": true, "speed": 1.0}
   ],
   "music": {"file": "/abs/musique.mp3", "volume_db": -20, "duck": true},  # optionnel
-  "subtitles": {"from_transcripts": true, "style": "bold"}                  # optionnel
+  "titles": [                                                               # optionnel
+    {"text": "LES TROIS\nOUTILS", "start": 14.8, "end": 16.4, "y": 0.10, "size": 0.12,
+     "font": "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf", "condense": 0.75}
+  ],
+  "subtitles": {"from_transcripts": true, "style": "bold"}                  # bold | natural | serif
 }
 
 Usage:
@@ -41,7 +47,12 @@ SUB_STYLES = {
     # Format long/YouTube : phrases courtes en casse normale, bas d'écran.
     "natural": ("FontName=DejaVu Sans,FontSize=13,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
                 "BorderStyle=1,Outline=1.5,Shadow=0,Alignment=2,MarginV=30", 7, False),
+    # Tuto/éditorial (vu dans la vidéo de référence) : serif, casse normale, 2-3 mots,
+    # posé sous le bandeau face caméra (fit "band").
+    "serif": ("FontName=Liberation Serif,FontSize=15,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
+              "BorderStyle=1,Outline=0.6,Shadow=0,Alignment=2,MarginV=60", 3, False),
 }
+TITLE_FONT = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
 
 
 def run(cmd: list[str]) -> str:
@@ -57,7 +68,13 @@ def has_audio(path: str) -> bool:
     return bool(out.stdout.strip())
 
 
-def fit_filter(w: int, h: int, fit: str) -> str:
+def fit_filter(w: int, h: int, fit: str, o: dict | None = None) -> str:
+    o = o or {}
+    if fit == "band":  # bandeau plein largeur sur fond noir
+        bh = int(h * o.get("band_height", 0.42)) // 2 * 2
+        top = int(h * o.get("band_top", 0.20)) // 2 * 2
+        return (f"scale={w}:{bh}:force_original_aspect_ratio=increase,crop={w}:{bh},"
+                f"pad={w}:{h}:0:{top}:black")
     if fit == "fill":  # recadrage plein cadre (centre)
         return f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
     if fit == "pad":  # bandes noires
@@ -76,7 +93,7 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
     src = edl["sources"][r["source"]]
     speed = float(r.get("speed", 1.0))
     dur = (r["end"] - r["start"]) / speed
-    vf = fit_filter(w, h, o.get("fit", "blur"))
+    vf = fit_filter(w, h, o.get("fit", "blur"), o)
     if speed != 1.0:
         vf = f"setpts=PTS/{speed}," + vf
     if edl.get("grade"):
@@ -148,6 +165,30 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
     return len(cues)
 
 
+def title_png(t: dict, w: int, h: int, out: Path) -> None:
+    """Titre plein cadre transparent : grosses capitales serif « condensées » (étirement horizontal)."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    font = ImageFont.truetype(t.get("font", TITLE_FONT), max(8, int(h * t.get("size", 0.10))))
+    lines = t["text"].split("\n")
+    condense = float(t.get("condense", 0.75))
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    y = int(h * t.get("y", 0.10))
+    for line in lines:
+        l, tp, r, b = font.getbbox(line)
+        tw, th = r - l, b - tp
+        img = Image.new("RGBA", (tw + 8, th + 8), (0, 0, 0, 0))
+        ImageDraw.Draw(img).text((4 - l, 4 - tp), line, font=font, fill=t.get("color", "#FFFFFF"))
+        img = img.resize((max(1, int(img.width * condense)), img.height), Image.LANCZOS)
+        if img.width > w * 0.94:  # ne jamais déborder du cadre
+            k = w * 0.94 / img.width
+            img = img.resize((int(img.width * k), int(img.height * k)), Image.LANCZOS)
+        x = int(w * t["x"]) if "x" in t else (w - img.width) // 2
+        canvas.alpha_composite(img, (x, y))
+        y += int(img.height * 0.92)
+    canvas.save(out)
+
+
 def loudnorm_params(path: Path, extra_inputs: list[str], fc_audio: str) -> dict:
     log = run(["ffmpeg", "-hide_banner", "-i", str(path), *extra_inputs, "-filter_complex",
                f"{fc_audio}[mix];[mix]loudnorm=I=-14:TP=-1:LRA=11:print_format=json[o]",
@@ -199,8 +240,23 @@ def main() -> None:
                 f"measured_LRA={ln['input_lra']}:measured_thresh={ln['input_thresh']}:"
                 f"offset={ln['target_offset']}:linear=true,aresample=48000")
 
-        # ---- vidéo : sous-titres EN DERNIER ----
-        vchain = ""
+        # ---- vidéo : titres incrustés, puis sous-titres EN DERNIER ----
+        out_w, out_h = (int(x) for x in subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height",
+             "-of", "csv=p=0", str(base)], capture_output=True, text=True).stdout.strip().split(","))
+        fps = edl["output"].get("fps", 30)
+        vparts, cur = [], "0:v"
+        for k, t in enumerate(edl.get("titles", [])):
+            png = tmp / f"title{k}.png"
+            title_png(t, out_w, out_h, png)
+            idx = 1 + (1 if m else 0) + k
+            extra += ["-loop", "1", "-framerate", str(fps), "-t", f"{total:.3f}", "-i", str(png)]
+            a, b = float(t["start"]), float(t["end"])
+            fd = min(0.12, (b - a) / 3)
+            vparts.append(f"[{idx}:v]format=rgba,fade=t=in:st={a:.3f}:d={fd:.3f}:alpha=1,"
+                          f"fade=t=out:st={b - fd:.3f}:d={fd:.3f}:alpha=1[t{k}];"
+                          f"[{cur}][t{k}]overlay=0:0:enable='between(t,{a:.3f},{b:.3f})'[o{k}]")
+            cur = f"o{k}"
         subs = edl.get("subtitles")
         if subs:
             style = subs.get("style", "bold")
@@ -211,14 +267,16 @@ def main() -> None:
                 n = build_srt(edl, args.edl, durs, style, srt)
                 print(f"  sous-titres : {n} répliques → {srt}")
             esc = str(srt).replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
-            vchain = f"[0:v]subtitles='{esc}':force_style='{SUB_STYLES[style][0]}'[v]"
+            vparts.append(f"[{cur}]subtitles='{esc}':force_style='{SUB_STYLES[style][0]}'[sub]")
+            cur = "sub"
 
-        # Sans sous-titres, la vidéo est copiée telle quelle (pas de 2e compression).
+        # Sans titres ni sous-titres, la vidéo est copiée telle quelle (pas de 2e compression).
+        touched = bool(vparts)
         vcodec = (["-c:v", "libx264", "-preset", "veryfast" if args.preview else "medium",
                    "-crf", "23" if args.preview else "18", "-pix_fmt", "yuv420p"]
-                  if subs else ["-c:v", "copy"])
-        vmap = ["-map", "[v]"] if subs else ["-map", "0:v"]
-        fc = f"{vchain};" if subs else ""
+                  if touched else ["-c:v", "copy"])
+        vmap = ["-map", f"[{cur}]"] if touched else ["-map", "0:v"]
+        fc = ";".join(vparts) + ";" if touched else ""
         run(["ffmpeg", "-v", "error", "-i", str(base), *extra, "-filter_complex",
              f"{fc}{fc_audio}[mix];[mix]{loud}[a]", *vmap, "-map", "[a]", *vcodec,
              "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", f"{total:.3f}",
