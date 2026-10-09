@@ -42,20 +42,32 @@ def api_key() -> str:
     raise SystemExit("clé Gemini introuvable (GEMINI_API_KEY ou ~/.config/gemini/.env)")
 
 
-def call(method: str, url: str, key: str, body: bytes | None = None, headers: dict | None = None):
+class Busy(Exception):
+    """Modèle surchargé (503/429/500) après plusieurs essais."""
+
+
+def call(method: str, url: str, key: str, body: bytes | None = None, headers: dict | None = None,
+         tries: int = 5):
     h = {"x-goog-api-key": key, **(headers or {})}
     req = urllib.request.Request(url, data=body, method=method, headers=h)
-    for attempt in range(4):
+    for attempt in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=600) as r:
                 return r.headers, r.read()
         except urllib.error.HTTPError as e:
             msg = e.read()[:800].decode(errors="replace")
-            if e.code in (429, 500, 503) and attempt < 3:
-                time.sleep(10 * 2 ** attempt)
-                continue
+            if e.code in (429, 500, 503):
+                if attempt < tries - 1:
+                    time.sleep(15 * 2 ** attempt)
+                    continue
+                raise Busy(f"Gemini HTTP {e.code} : {msg[:200]}")
             raise SystemExit(f"Gemini HTTP {e.code} : {msg}")
-    raise SystemExit("Gemini : échec après plusieurs essais")
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < tries - 1:
+                time.sleep(15)
+                continue
+            raise Busy(f"réseau : {e}")
+    raise Busy("échec après plusieurs essais")
 
 
 def upload(path: Path, key: str, mime: str) -> dict:
@@ -97,6 +109,8 @@ def main() -> None:
     ap.add_argument("video", type=Path)
     ap.add_argument("--edit-dir", type=Path, required=True)
     ap.add_argument("--model", default="gemini-3.5-flash")
+    ap.add_argument("--fallback", nargs="*", default=["gemini-3.8-flash", "gemini-2.5-flash"],
+                    help="Modèles essayés si le principal est surchargé")
     ap.add_argument("--language", default="fr")
     ap.add_argument("--context", default="", help="Noms propres et lieux pour l'orthographe")
     ap.add_argument("--force", action="store_true")
@@ -131,10 +145,22 @@ def main() -> None:
                 "generationConfig": {"temperature": 0, "response_mime_type": "application/json",
                                      "response_schema": SCHEMA},
             }
-            _, raw = call("POST", f"{API}/v1beta/models/{args.model}:generateContent", key,
-                          json.dumps(body).encode(), {"Content-Type": "application/json"})
+            raw, used = None, None
+            for model in [args.model, *args.fallback]:
+                try:
+                    _, raw = call("POST", f"{API}/v1beta/models/{model}:generateContent", key,
+                                  json.dumps(body).encode(), {"Content-Type": "application/json"})
+                    used = model
+                    break
+                except Busy as e:
+                    print(f"{model} indisponible ({e}) → modèle suivant")
+            if raw is None:
+                raise SystemExit("tous les modèles Gemini sont surchargés ; réessayer plus tard")
         finally:
-            call("DELETE", f"{API}/v1beta/{f['name']}", key)
+            try:
+                call("DELETE", f"{API}/v1beta/{f['name']}", key)
+            except Busy:
+                print("suppression du fichier distant impossible (expire seul sous 48 h)")
 
     resp = json.loads(raw)
     text = resp["candidates"][0]["content"]["parts"][0]["text"]
@@ -153,7 +179,7 @@ def main() -> None:
                           "speaker_id": seg.get("speaker"), "estimated": True})
             t += d
     out_json.write_text(json.dumps({"source": str(args.video.resolve()), "engine": "gemini",
-                                    "model": args.model, "language": data.get("language", args.language),
+                                    "model": used, "language": data.get("language", args.language),
                                     "segments": data["segments"], "words": words},
                                    ensure_ascii=False, indent=1))
     lines = [f"[{s['start']:07.2f}-{s['end']:07.2f}] {s.get('speaker') or ''} {s['text']}".replace("  ", " ")
