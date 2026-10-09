@@ -67,18 +67,20 @@ def main() -> None:
     if not todo:
         return
 
+    import numpy as np
     from faster_whisper import WhisperModel  # import tardif : seul ce script en dépend
 
     model = WhisperModel(args.model, device="cpu", compute_type="int8", cpu_threads=args.threads)
     prompt = "Euh, alors, hum, en fait, du coup… Voilà." + (f" {args.prompt}" if args.prompt else "")
     for n, video in enumerate(todo, 1):
         t0 = time.time()
-        with tempfile.TemporaryDirectory() as tmp:
-            wav = Path(tmp) / "a.wav"
-            subprocess.run(["ffmpeg", "-v", "error", "-i", str(video), "-vn", "-ac", "1",
-                            "-ar", "16000", "-y", str(wav)], check=True)
+        if True:
+            # Décodage par ffmpeg (évite la dépendance à PyAV, parfois incompatible)
+            pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000",
+                                  "-f", "s16le", "-"], capture_output=True, check=True).stdout
+            audio = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
             segments, info = model.transcribe(
-                str(wav), language=args.language, word_timestamps=True,
+                audio, language=args.language, word_timestamps=True,
                 # VAD intégré (silero, fourni avec faster-whisper) : limite les hallucinations
                 # sur la musique et les bruits ; pas de conditionnement → moins de boucles.
                 vad_filter=True, vad_parameters={"min_silence_duration_ms": 500},
@@ -89,6 +91,12 @@ def main() -> None:
             words = []
             for seg in segments:
                 for w in seg.words or []:
+                    # Un jeton sans espace initial prolonge le mot précédent (c + 'est, Vas + -y)
+                    if words and w.word and not w.word.startswith(" ") and w.word[0] in "'’-":
+                        words[-1]["text"] += w.word.strip()
+                        words[-1]["end"] = round(w.end, 3)
+                        words[-1]["prob"] = round(min(words[-1]["prob"], w.probability), 3)
+                        continue
                     words.append({"type": "word", "text": w.word.strip(),
                                   "start": round(w.start, 3), "end": round(w.end, 3),
                                   "prob": round(w.probability, 3)})
