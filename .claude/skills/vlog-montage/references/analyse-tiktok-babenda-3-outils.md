@@ -55,3 +55,12 @@ les passages entre crochets sont incertains.
 - **Illustrations générées** (images cinématiques sombres) pour les idées abstraites (« framework
   d'agents »).
 - **Fin** : appel à l'action incrusté (faux champ commentaire « GUIDE ») puis carte de fin.
+
+## Contre-vérification par transcription audio (Gemini, 2026-10-09)
+
+`transcribe_gemini.py` (modèle `gemini-3.5-flash`, audio seul) confirme le texte ci-dessus, avec
+ces différences : « tout ce que je vais te dire là dans cette vidéo en direct » ; « Mais attends,
+attends, attends, parce que le troisième, c'est ce qui fait toute la différence » ; « commente ce
+que tu veux en dessous de la vidéo ». Gemini a entendu « Claude Watch » là où l'écran affiche
+« claude-video », et « James Heatman » là où les sous-titres affichent « James Hetman » : les deux
+sources divergent, l'orthographe exacte de ce nom reste non confirmée.

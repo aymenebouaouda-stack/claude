@@ -53,6 +53,12 @@ Durée, résolution, fps, orientation (rotation téléphone incluse), audio, HDR
 - Parole : `transcribe_local.py <video> --edit-dir <rushes>/edit --language fr`
   → `transcripts/<nom>.txt` (phrases horodatées) à lire en priorité.
   Limite : Whisper efface souvent les « euh » ; croiser avec les silences.
+- Parole via Gemini (si `huggingface.co` est bloqué) : `transcribe_gemini.py <video> --edit-dir
+  <rushes>/edit --context "prénoms, lieux"` → même format de sortie. N'envoie que l'AUDIO
+  (mono 16 kHz) chez Google, supprimé après réponse. **Seulement avec l'accord explicite de
+  l'utilisateur.** Clé dans `~/.config/gemini/.env`, jamais dans le dépôt. Test du 2026-10-09
+  (58 s, `gemini-3.5-flash`) : texte fidèle, horodatages à ~±0,5 s, un nom propre mal entendu
+  → relire les noms ; caler les coupes sur `silences.py`, pas sur ces horodatages.
 - Temps morts : `silences.py <video> --min 0.5` → plages parlées candidates.
   Seuil à ajuster (`--noise -30` en extérieur bruyant, `-40` en intérieur calme).
 - Image : `contact_sheet.py <video> --n 12 -o <rushes>/edit/verify/<nom>.png`, puis lire la
