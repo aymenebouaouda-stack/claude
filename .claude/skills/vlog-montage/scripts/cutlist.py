@@ -128,6 +128,13 @@ def main() -> None:
         d = (e - s) / float(c.get("speed", 1.0))
         total += d
         print(f"  {clip:30s} {s:7.2f} → {e:7.2f}  ({d:5.1f}s) {c.get('beat', '')}")
+    # Chevauchements entre plans d'un même rush (son ou image répétés par erreur)
+    seen: dict[str, list[tuple[float, float]]] = {}
+    for rg in edl["ranges"]:
+        for a0, b0 in seen.get(rg["source"], []):
+            if rg["start"] < b0 - 0.05 and rg["end"] > a0 + 0.05 and rg.get("beat") != "HOOK":
+                errors.append(f"{rg['source']} : {rg['start']:.2f}-{rg['end']:.2f} chevauche {a0:.2f}-{b0:.2f}")
+        seen.setdefault(rg["source"], []).append((rg["start"], rg["end"]))
     edl["total_duration_s"] = round(total, 1)
     args.output.write_text(json.dumps(edl, indent=1, ensure_ascii=False))
     print(f"\n{len(edl['ranges'])} plans, durée totale {int(total // 60)} min {total % 60:04.1f} s → {args.output}")
