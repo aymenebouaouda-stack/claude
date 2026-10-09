@@ -53,6 +53,12 @@ Tous les fichiers de travail vont dans `<dossier_rushes>/edit/`. Ne jamais modif
 - Ordre de tournage : `organize_rushes.py <rushes> -o <rushes>/edit` → `edit/ordered/NNN_…`
   (liens) + `edit/rushes.md`. Date iPhone > date du conteneur > date du fichier (« incertaine »).
   Faire valider l'ordre par l'utilisateur s'il y a des dates incertaines.
+  **Toujours contrôler l'ordre à l'image** : `thumb_grid.py --edit-dir <rushes>/edit` (une
+  vignette par rush). Cas réel (export iCloud, 2026-10) : dates « conteneur » = dates d'export,
+  inverses des numéros IMG ; le bon ordre était celui des numéros (`--by name`), le reste en
+  `--order-file`.
+- Intro « machine à écrire » : `intro_typewriter.py -o intro.mp4 --lines "TITRE" "sous-titre"`
+  (son de clavier synthétisé, pas de droits ; `--bg` pour un fond vidéo assombri).
 ```bash
 python3 -I scripts/inventory.py <rushes> -o <rushes>/edit/inventory.json
 ```

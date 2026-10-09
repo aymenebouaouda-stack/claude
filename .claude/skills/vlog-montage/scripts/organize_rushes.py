@@ -6,6 +6,13 @@ Date utilisée, par ordre de fiabilité :
   3. date de modification du fichier (conservée par `unzip`)  ← signalée « incertaine »
 Les ex æquo sont départagés par le nom de fichier (IMG_0012 avant IMG_0013).
 
+ATTENTION : la date « conteneur » est souvent la date d'export/enregistrement, pas de tournage
+(constaté sur un export iCloud : vidéos 720p ré-encodées, dates inversées par rapport aux numéros
+IMG). Toujours contrôler l'ordre à l'image (planche de vignettes). Si les dates sont fausses :
+  --by name        ordre des noms (le compteur IMG_xxxx d'un même iPhone suit le tournage)
+  --order-file F   ordre imposé : un nom de fichier par ligne, lignes « # … » = commentaires
+                   (les fichiers absents de F sont ajoutés à la fin et signalés)
+
 Crée <sortie>/ordered/NNN_<date>_<heure>_<nom> (liens symboliques, rushes jamais modifiés)
 et <sortie>/rushes.md + rushes.json (tableau : n°, date, durée, résolution, rotation, source de la date).
 
@@ -68,6 +75,8 @@ def main() -> None:
     ap.add_argument("folder", type=Path)
     ap.add_argument("-o", "--edit-dir", type=Path, required=True)
     ap.add_argument("--tz", default="Europe/Paris")
+    ap.add_argument("--by", choices=["date", "name"], default="date")
+    ap.add_argument("--order-file", type=Path)
     args = ap.parse_args()
     tz = ZoneInfo(args.tz)
 
@@ -88,6 +97,19 @@ def main() -> None:
                      "fps": v.get("avg_frame_rate"), "audio": any(s.get("codec_type") == "audio"
                                                                   for s in info.get("streams", []))})
     rows.sort(key=lambda r: (r["when"], natural_key(r["name"])))
+    if args.by == "name":
+        rows.sort(key=lambda r: natural_key(r["name"]))
+    if args.order_file:
+        wanted = [l.strip() for l in args.order_file.read_text().splitlines()
+                  if l.strip() and not l.strip().startswith("#")]
+        pos = {n: i for i, n in enumerate(wanted)}
+        missing = [n for n in wanted if n not in {r["name"] for r in rows}]
+        extra = [r["name"] for r in rows if r["name"] not in pos]
+        if missing:
+            print(f"ATTENTION : absents des rushes : {missing}")
+        if extra:
+            print(f"ATTENTION : hors du fichier d'ordre (mis à la fin) : {extra}")
+        rows.sort(key=lambda r: pos.get(r["name"], len(pos)))
 
     ordered = args.edit_dir / "ordered"
     ordered.mkdir(parents=True, exist_ok=True)
