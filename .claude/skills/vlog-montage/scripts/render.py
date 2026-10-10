@@ -123,13 +123,21 @@ def range_loudness(src: str, start: float, end: float) -> float | None:
 
 
 def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
+    """Extrait un plan en DEUX fichiers de même durée exacte :
+    out.h264 : vidéo H.264 brute (sans B-frames), exactement n images à `fps` ;
+    out.pcm  : son PCM 48 kHz stéréo, exactement n × 48000 / fps échantillons.
+    Recoller ces fichiers bout à bout (octets) garde le son et l'image synchronisés par
+    construction : aucune dérive, quel que soit le nombre de plans (cf. diagnostic 2026-10-10 :
+    la concaténation de MP4 dont son et image différaient de quelques ms dérivait jusqu'à ±1 s)."""
     o = edl["output"]
-    w, h, fps = o["width"], o["height"], o.get("fps", 30)
+    w, h, fps = o["width"], o["height"], int(o.get("fps", 30))
     if preview:
         w, h = w // 2 // 2 * 2, h // 2 // 2 * 2
     src = edl["sources"][r["source"]]
     speed = float(r.get("speed", 1.0))
-    dur = (r["end"] - r["start"]) / speed
+    n = max(1, int(round((r["end"] - r["start"]) / speed * fps)))
+    dur = n / fps
+    samples = n * 48000 // fps
     vf = fit_filter(w, h, r.get("fit", o.get("fit", "blur")), o)
     z = float(r.get("zoom", 1.0))
     if z > 1.0:  # « punch-in » : recadrage central avant le cadrage de sortie
@@ -144,16 +152,15 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
         vf = f"setpts=PTS/{speed}," + vf
     if edl.get("grade"):
         vf += "," + edl["grade"]
-    vf += f",fps={fps},format=yuv420p,setsar=1"
+    vf += f",fps={fps}:start_time=0,tpad=stop_mode=clone:stop_duration=2,format=yuv420p,setsar=1"
 
-    af = f"afade=t=in:st=0:d={FADE},afade=t=out:st={max(0.0, dur - FADE):.3f}:d={FADE}"
+    af = f"afade=t=in:st=0:d={FADE},afade=t=out:st={max(0.0, dur - FADE):.4f}:d={FADE}"
     if speed != 1.0:
         af = f"atempo={speed}," + af
-    cmd = ["ffmpeg", "-v", "error", "-ss", f"{r['start']:.3f}", "-to", f"{r['end']:.3f}", "-i", src]
+    cmd = ["ffmpeg", "-v", "error", "-ss", f"{r['start']:.3f}", "-to", f"{r['end'] + 1:.3f}", "-i", src]
     if r.get("mute") or not has_audio(src):
-        cmd += ["-f", "lavfi", "-t", f"{dur:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
-        amap = "1:a"
-        af = "anull"
+        cmd += ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo"]
+        amap, af = "1:a", "anull"
     else:
         amap = "0:a:0"
         gain = r.get("gain_db")
@@ -163,14 +170,17 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
                 gain = max(-12.0, min(15.0, float(edl["normalize_audio"]) - lufs))
         if gain:
             af = f"volume={gain:.2f}dB,alimiter=limit=0.95:level=false," + af
-    cmd += ["-filter_complex", f"[0:v]{vf}[v];[{amap}]{af},aresample=48000,"
-                               f"aformat=channel_layouts=stereo[a]",
-            "-map", "[v]", "-map", "[a]", "-t", f"{dur:.3f}",
-            "-c:v", "libx264", "-preset", "veryfast" if preview else o.get("preset", "medium"),
-            "-crf", "23" if preview else str(o.get("crf", 18)), "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-            # même base de temps pour tous les plans → concaténation propre
-            "-video_track_timescale", str(int(round(fps * 1000))), "-y", str(out)]
+    afull = (f"aresample=48000:async=1:first_pts=0,{af},aformat=sample_fmts=s16:channel_layouts=stereo,"
+             f"apad,atrim=end_sample={samples}")
+    cmd += ["-filter_complex", f"[0:v]{vf}[v];[{amap}]{afull}[a]",
+            "-map", "[v]", "-frames:v", str(n),
+            "-c:v", "libx264", "-bf", "0", "-preset", "veryfast" if preview else o.get("preset", "medium"),
+            "-crf", "23" if preview else str(o.get("crf", 18)), "-f", "h264", "-y", str(out.with_suffix(".h264")),
+            "-map", "[a]", "-f", "s16le", "-ar", "48000", "-ac", "2", "-y", str(out.with_suffix(".pcm"))]
     run(cmd)
+    got = out.with_suffix(".pcm").stat().st_size // 4
+    if got != samples:
+        raise SystemExit(f"plan {i + 1} : {got} échantillons au lieu de {samples}")
     return dur
 
 
@@ -278,27 +288,35 @@ def main() -> None:
         common = {k: edl.get(k) for k in ("output", "grade", "normalize_audio")}
 
         def one(i: int, r: dict) -> tuple[Path, float]:
-            key = hashlib.sha1(json.dumps([r, common, edl["sources"][r["source"]], args.preview, 2],
+            key = hashlib.sha1(json.dumps([r, common, edl["sources"][r["source"]], args.preview, 3],
                                           sort_keys=True).encode()).hexdigest()[:16]
-            p = cache / f"{key}.mp4"
-            speed = float(r.get("speed", 1.0))
-            if not p.exists():
-                part = p.with_suffix(".part.mp4")
+            p = cache / key
+            fps = int(edl["output"].get("fps", 30))
+            n = max(1, int(round((r["end"] - r["start"]) / float(r.get("speed", 1.0)) * fps)))
+            if not (p.with_suffix(".h264").exists() and p.with_suffix(".pcm").exists()):
+                part = cache / (key + "_part")
                 extract(edl, i, r, part, args.preview)
-                part.rename(p)
+                part.with_suffix(".h264").replace(p.with_suffix(".h264"))
+                part.with_suffix(".pcm").replace(p.with_suffix(".pcm"))
                 print(f"  plan {i + 1}/{len(edl['ranges'])} {r['source']} {r['start']:.2f}-{r['end']:.2f} "
                       f"({r.get('beat', '')})", flush=True)
-            return p, (r["end"] - r["start"]) / speed
+            return p, n / fps
 
         with ThreadPoolExecutor(int(edl.get("jobs", 2))) as ex:
             results = list(ex.map(lambda ir: one(*ir), enumerate(edl["ranges"])))
         parts = [p for p, _ in results]
         durs = [d for _, d in results]
-        lst = tmp / "list.txt"
-        lst.write_text("".join(f"file '{p}'\n" for p in parts))
-        base = tmp / "base.mp4"
-        run(["ffmpeg", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy",
-             "-y", str(base)])
+        # Recollage par octets : vidéo brute d'un côté, son PCM de l'autre, puis réunion en une fois
+        vcat, acat = tmp / "base.h264", tmp / "base.pcm"
+        with vcat.open("wb") as fv, acat.open("wb") as fa:
+            for p in parts:
+                fv.write(p.with_suffix(".h264").read_bytes())
+                fa.write(p.with_suffix(".pcm").read_bytes())
+        fps = int(edl["output"].get("fps", 30))
+        base = tmp / "base.mkv"
+        run(["ffmpeg", "-v", "error", "-framerate", str(fps), "-i", str(vcat),
+             "-f", "s16le", "-ar", "48000", "-ac", "2", "-i", str(acat),
+             "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "copy", "-y", str(base)])
         total = sum(durs)
 
         # ---- audio : voix (+ musique avec ducking) ----

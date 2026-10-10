@@ -27,7 +27,14 @@ Tous les fichiers de travail vont dans `<dossier_rushes>/edit/`. Ne jamais modif
 
 ## Règles techniques (correction, non négociables)
 
-- Extraction plan par plan puis concaténation `-c copy` (une seule génération d'encodage).
+- Extraction plan par plan, une seule génération d'encodage, et **synchro son/image garantie par
+  construction** : chaque plan = exactement n images (H.264 brut, sans B-frames) + exactement
+  n × 48000 / fps échantillons PCM, alignés à t = 0 (`fps=…:start_time=0`,
+  `aresample=async=1:first_pts=0`), recollés octet par octet puis multiplexés une seule fois.
+  Leçon (2026-10-10) : concaténer des MP4 dont son et image diffèrent de quelques ms
+  (−33 à +53 ms par plan sur des rushes iPhone) a fait dériver la synchro jusqu'à ±1 s sur
+  250 plans, alors que chaque plan pris seul était synchrone. Contrôle : `sync_check.py` sur
+  une mire flash + bip, et mesure sur le rendu réel.
 - Fondu audio de 30 ms à chaque bord de plan (sinon « clics » aux coupes).
 - Sous-titres appliqués **en dernier** dans la chaîne de filtres.
 - Horodatage des sous-titres sur la timeline de sortie :
@@ -111,6 +118,10 @@ Titres-mots-clés : `"titles": [{"text": "LES TROIS\nOUTILS", "start": s, "end":
 Sous-titres : `bold` (capitales grasses), `natural` (phrases), `serif` (style éditorial).
 
 ### 6. Vérification avant de montrer quoi que ce soit
+- `speech_cuts.py edl.json --gap 2` : liste les plans qui finissent (ou commencent) au milieu
+  d'une phrase, avec le texte coupé. Les écouter et prolonger ; la personne qui parle doit
+  pouvoir finir (retour utilisateur : « faut pas que tu coupes la parole »). `cutlist.py` recale
+  aussi tout temps chiffré tombant au milieu d'un mot.
 - `contact_sheet.py` sur le **rendu** : début, fin, et autour de chaque coupe
   (`--start t-1.5 --end t+1.5`). Chercher : flash/saut à la coupe, sous-titre masqué ou
   mal coupé, cadrage qui coupe un visage.
@@ -129,7 +140,25 @@ Sous-titres : `bold` (capitales grasses), `natural` (phrases), `serif` (style é
   spéciale pour l'ouverture (`"subs_style": "titre"`). Polices libres (OFL) : paquets npm
   `@fontsource/montserrat` et `@fontsource/anton` (registre npm accessible), woff2 → ttf avec
   fontTools, noms de famille uniques (« Vlog Montserrat ExtraBold », « Vlog Anton »).
-- **Orthographe des noms** : demander à l'utilisateur, puis `"fixes"` (mots entiers).
+- **Orthographe des noms** : demander à l'utilisateur, puis `"fixes"` (mots entiers) ; une
+  erreur propre à un seul passage : `"subs_fixes"` sur ce plan (correction vers "" = masquer un
+  passage incompréhensible plutôt que d'inventer ce qui a été dit).
+- **Textes explicatifs** : `"label": "Problème avec la voiture"` sur un plan → cartouche en haut
+  à gauche (Anton, fond jaune) pendant 3,5 s (`"label_dur"`). En mettre à chaque changement de
+  lieu ou de situation (arrivée quelque part, problème, bonne nouvelle…) : le spectateur
+  comprend sans connaître le contexte.
+- **Pas de retouche couleur par défaut** : un `eq` d'éclaircissement sur les plans de nuit a été
+  remarqué et rejeté (« on voit que la qualité change »). Garder l'image d'origine sauf demande.
+- **Plans un peu plus longs quand quelqu'un parle**, coupes serrées gardées pour les
+  explications (appréciées : « ça permet de bien comprendre rapidement »).
+- **Transition « appel entrant »** : `call_card.py --name … --bg rush --bg-start t` (fond
+  flouté, icône qui vibre, sonnerie synthétisée sans droits) entre « attends, X m'appelle » et
+  la suite.
+- **Paysage YouTube (1920×1080)** : rushes verticaux en `blur` (image entière, côtés floutés),
+  choisi automatiquement par `cutlist.py` ; cartons `intro_typewriter.py --size 1920x1080` ;
+  sous-titres dimensionnés pour 1080 px de petit côté (`margin_v` 70 par défaut en paysage).
+  Demander le format AVANT de monter : l'utilisateur est passé du vertical au paysage après
+  la v3, ce qui a obligé à tout refaire.
 
 ### 6 bis. Livraison
 - L'envoi de fichiers à l'utilisateur dans l'app est limité (constaté le 2026-10-10 : 30 Mio par

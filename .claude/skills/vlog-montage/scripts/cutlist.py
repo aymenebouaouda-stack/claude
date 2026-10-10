@@ -5,8 +5,10 @@ Chaque entrée de la liste de coupes :
   - "from"/"to" : début/fin d'une phrase prononcée (recherche approximative, insensible à la
     casse et à la ponctuation, après la coupe précédente du même rush) OU un nombre de secondes.
     "from" absent = début du rush ; "to" absent = fin du rush.
-  - toute autre clé (rotate, fit, filter, subs, mute, speed, beat, note, gain_db) est recopiée
-    dans le plan de l'EDL.
+  - toute autre clé (rotate, fit, filter, subs, mute, speed, beat, note, gain_db, label,
+    subs_fixes, sfx…) est recopiée dans le plan de l'EDL.
+  - cadrage automatique (si "fit" absent) : rush de même orientation que la sortie → "fill" ;
+    rush vertical en sortie paysage → "blur" (image entière, côtés floutés) ; sinon "fit" de base.
   - {"card": "chemin.mp4"} insère un carton/intro déjà rendu (plan entier).
 Les bords sont calés sur les mots (marge 0,12 s avant, 0,20 s après) sans mordre le mot voisin.
 
@@ -97,7 +99,16 @@ def main() -> None:
             if v is None:
                 return after if is_start and after else (0.0 if is_start else r["duration"])
             if isinstance(v, (int, float)):
-                return float(v)
+                # temps chiffré tombant AU MILIEU d'un mot : on garde le mot entier (pas de mot coupé)
+                v = float(v)
+                for wi, w in enumerate(words):
+                    if w["start"] < v < w["end"]:
+                        if is_start:
+                            prev_end = words[wi - 1]["end"] if wi else 0.0
+                            return max(prev_end + GUARD if wi else 0.0, w["start"] - PAD_BEFORE, 0.0)
+                        nxt = words[wi + 1]["start"] - GUARD if wi + 1 < len(words) else r["duration"]
+                        return min(w["end"] + PAD_AFTER, nxt, r["duration"])
+                return v
             hit = find(words, v, after if is_start else start_hint, not is_start)
             if not hit and is_start and after:  # passage déjà utilisé plus tôt (ex. accroche) : chercher depuis le début
                 hit = find(words, v, 0.0, False)
@@ -125,8 +136,11 @@ def main() -> None:
             w_, h_ = r["width"], r["height"]
             if int(c.get("rotate", 0)) % 180 == 90:
                 w_, h_ = h_, w_
-            if h_ > w_:  # rush vertical (après redressement) : plein cadre en sortie verticale
+            out_portrait = edl["output"]["height"] > edl["output"]["width"]
+            if (h_ > w_) == out_portrait:  # même orientation que la sortie : plein cadre
                 rng["fit"] = "fill"
+            elif out_portrait is False:  # rush vertical en sortie paysage : image entière, côtés floutés
+                rng["fit"] = "blur"
         tight = c.get("tighten", tighten_default) if c.get("subs", True) is not False else False
         pieces = [(s, e)]
         if tight and words:
@@ -141,6 +155,8 @@ def main() -> None:
             pieces = [(x, y) for x, y in pieces if y - x >= 0.5] or [(s, e)]
         for pi, (x, y) in enumerate(pieces):
             part = dict(rng, start=round(x, 3), end=round(y, 3))
+            if pi:  # le texte explicatif ne s'affiche qu'au début du plan
+                part.pop("label", None)
             if pi % 2 == 1 and "zoom" not in c:
                 part["zoom"] = float(tight.get("zoom", 1.12)) if isinstance(tight, dict) else 1.12
             edl["ranges"].append(part)
