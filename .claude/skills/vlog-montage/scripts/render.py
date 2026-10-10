@@ -375,6 +375,18 @@ def main() -> None:
              f"{fc}{fc_audio}[mix];[mix]{loud}[a]", *vmap, "-map", "[a]", *vcodec,
              "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", f"{total:.3f}",
              "-y", str(args.output)])
+    # Contrôle des crêtes après encodage AAC : malgré le limiteur, des crêtes > 0 dBFS ont été
+    # mesurées sur des montages longs. Si true peak > -1 dBFS, passe de limitation sur le son seul.
+    log = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(args.output), "-vn",
+                          "-af", "ebur128=peak=true", "-f", "null", "-"], capture_output=True, text=True).stderr
+    m = re.findall(r"Peak:\s+(-?[\d.]+) dBFS", log)
+    if m and float(m[-1]) > -1.0:
+        fixed = args.output.with_name(args.output.stem + ".peakfix" + args.output.suffix)
+        run(["ffmpeg", "-v", "error", "-i", str(args.output), "-map", "0:v", "-map", "0:a", "-c:v", "copy",
+             "-af", "alimiter=limit=0.6:attack=1:release=50:level=false,aresample=48000",
+             "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-y", str(fixed)])
+        fixed.replace(args.output)
+        print(f"  crêtes {m[-1]} dBFS → passe de limitation appliquée")
     print(f"OK → {args.output} ({total:.1f}s, {len(parts)} plans)")
 
 
