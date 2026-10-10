@@ -30,7 +30,7 @@ EDL :
   "normalize_audio": -18,      # optionnel : chaque plan ramené à ~-18 LUFS (gain mesuré, borné)
   "jobs": 2                    # optionnel : plans extraits en parallèle
 }
-Options par plan : "fit" (remplace celui de output), "filter" (filtre vidéo ffmpeg appliqué
+Options par plan : "zoom" (ex. 1.12, recadrage central « punch-in »), "fit" (remplace celui de output), "filter" (filtre vidéo ffmpeg appliqué
 avant le cadrage, ex. éclaircir : "eq=brightness=0.06:gamma=1.3"), "gain_db" (gain manuel),
 "subs": false (pas de sous-titres sur ce plan, ex. paroles de chanson).
 Sous-titres : "min_prob" (ex. 0.45) saute les répliques dont la confiance Whisper moyenne est faible.
@@ -131,6 +131,9 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
     speed = float(r.get("speed", 1.0))
     dur = (r["end"] - r["start"]) / speed
     vf = fit_filter(w, h, r.get("fit", o.get("fit", "blur")), o)
+    z = float(r.get("zoom", 1.0))
+    if z > 1.0:  # « punch-in » : recadrage central avant le cadrage de sortie
+        vf = f"crop=trunc(iw/{z}/2)*2:trunc(ih/{z}/2)*2," + vf
     if r.get("filter"):
         vf = r["filter"] + "," + vf
     # Redressement d'un plan filmé de travers (rotation du CONTENU, en degrés horaires)
@@ -338,7 +341,18 @@ def main() -> None:
                           f"[{cur}][t{k}]overlay=0:0:enable='between(t,{a:.3f},{b:.3f})'[o{k}]")
             cur = f"o{k}"
         subs = edl.get("subtitles")
-        if subs:
+        if subs and subs.get("style") == "dynamic":
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from subtitles_ass import build_ass  # même dossier
+            ass = args.output.with_suffix(".ass")
+            n = build_ass(edl, args.edl, durs, ass, out_w, out_h)
+            print(f"  sous-titres dynamiques : {n} répliques → {ass}")
+            esc_p = lambda x: str(x).replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+            fd = f":fontsdir='{esc_p(subs['fontsdir'])}'" if subs.get("fontsdir") else ""
+            vparts.append(f"[{cur}]subtitles='{esc_p(ass)}'{fd}[sub]")
+            cur = "sub"
+        elif subs:
             style = subs.get("style", "bold")
             srt = args.output.with_suffix(".srt")
             if subs.get("file"):

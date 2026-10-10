@@ -118,12 +118,28 @@ Sous-titres : `bold` (capitales grasses), `natural` (phrases), `serif` (style é
 - `ffmpeg -i final.mp4 -af ebur128=peak=true -f null -` : I ≈ -14 LUFS, true peak ≤ -1.
 - Maximum 3 passes correction/re-rendu ; au-delà, signaler les problèmes restants.
 
+### 5 bis. Style « vlog dynamique » (retours utilisateur, 2026-10-10)
+- **Ordre strictement chronologique** : pas d'accroche en ouverture si l'utilisateur veut suivre
+  la journée (une scène de nuit avant le départ en plein jour a été perçue comme du désordre).
+- **Jump cuts** : `"tighten": {"min_gap": 0.7, "zoom": 1.12}` dans base.json → `cutlist.py`
+  coupe les blancs ≥ 0,7 s entre deux mots et alterne un zoom « punch-in » sur les morceaux.
+- **Sous-titres** : `"subtitles": {"style": "dynamic", "fontsdir": …}` → `subtitles_ass.py` :
+  petits en bas (Montserrat ExtraBold ~58 px en 1080×1920, mot prononcé en jaune), moments forts
+  plus gros (Anton, jaune, « pop », au plus 1 toutes les 6 s ; plans `"emph": true`), police
+  spéciale pour l'ouverture (`"subs_style": "titre"`). Polices libres (OFL) : paquets npm
+  `@fontsource/montserrat` et `@fontsource/anton` (registre npm accessible), woff2 → ttf avec
+  fontTools, noms de famille uniques (« Vlog Montserrat ExtraBold », « Vlog Anton »).
+- **Orthographe des noms** : demander à l'utilisateur, puis `"fixes"` (mots entiers).
+
 ### 6 bis. Livraison
 - L'envoi de fichiers à l'utilisateur dans l'app est limité (constaté le 2026-10-10 : 30 Mio par
   fichier, malgré un premier message annonçant 500 Mio). Un montage de 30 min en 1080×1920 fait
   ~1,2 Go : envoyer un **aperçu découpé** avec `split_for_delivery.py` (coupe entre deux plans,
-  2 passes, < 30 Mio par partie), et la version pleine qualité par un autre canal (ex. Google Drive
-  de l'utilisateur avec une autorisation temporaire qu'il fournit).
+  2 passes, < 30 Mio par partie), et la version pleine qualité par un autre canal :
+  `upload_drive.py` (upload « resumable » vers le Drive de l'utilisateur) avec un jeton OAuth
+  temporaire qu'il fournit (OAuth 2.0 Playground, portée drive.file, ~1 h), rangé dans
+  ~/.config/gdrive/token, jamais dans le dépôt.
+- Un fichier .md déposé sur Drive ne s'ouvre pas sur téléphone : déposer les notes en Google Doc.
 - Le conteneur peut redémarrer ou être recyclé : garder les fichiers légers du projet (liste de
   coupes, réglages, notes) dans un endroit durable choisi par l'utilisateur ; les rushes restent
   chez lui.

@@ -1,6 +1,8 @@
 """Range des rushes de téléphone dans l'ordre chronologique de TOURNAGE.
 
 Date utilisée, par ordre de fiabilité :
+  0. date ISO de tournage cachée dans le bloc moov (lue directement dans le fichier : survit à
+     l'export iCloud qui réécrit creation_time — cas réel du 2026-10-10)
   1. com.apple.quicktime.creationdate (iPhone, heure locale + fuseau)
   2. creation_time du conteneur (UTC, converti en heure de Paris par défaut)
   3. date de modification du fichier (conservée par `unzip`)  ← signalée « incertaine »
@@ -39,7 +41,28 @@ def probe(p: Path) -> dict:
     return json.loads(out.stdout or "{}")
 
 
+EMBEDDED = re.compile(rb"(20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4})")
+
+
+def embedded_date(p: Path, span: int = 4_000_000) -> datetime | None:
+    """Date de tournage iPhone cachée dans les métadonnées QuickTime (clé creationdate),
+    souvent absente des tags que ffprobe affiche après un export iCloud « le plus compatible ».
+    On ne lit que le début et la fin du fichier (le bloc moov est à l'un des deux bouts)."""
+    size = p.stat().st_size
+    with p.open("rb") as f:
+        head = f.read(span)
+        f.seek(max(0, size - span))
+        tail = f.read(span)
+    found = sorted(set(EMBEDDED.findall(head) + EMBEDDED.findall(tail)))
+    if not found:
+        return None
+    return datetime.fromisoformat(re.sub(rb"([+-]\d\d)(\d\d)$", rb"\1:\2", found[0]).decode())
+
+
 def shot_time(p: Path, info: dict, tz: ZoneInfo) -> tuple[datetime, str]:
+    emb = embedded_date(p)
+    if emb:
+        return emb, "iphone (métadonnées)"
     tags = {k.lower(): v for k, v in info.get("format", {}).get("tags", {}).items()}
     apple = tags.get("com.apple.quicktime.creationdate")
     if apple:

@@ -67,6 +67,9 @@ def main() -> None:
     rushes = {Path(r["name"]).stem: r for r in json.loads((args.edit_dir / "rushes.json").read_text())}
     cuts = json.loads(args.cuts.read_text())
     edl = json.loads(args.base.read_text())
+    # "tighten" (dans base.json ou par coupe) : jump cuts sur les blancs ≥ min_gap entre deux mots,
+    # avec zoom « punch-in » alterné sur les morceaux (ex. {"min_gap": 0.7, "zoom": 1.12})
+    tighten_default = edl.pop("tighten", False)
     edl["sources"], edl["ranges"] = {}, []
     last_end: dict[str, float] = {}
     total, errors = 0.0, []
@@ -117,15 +120,31 @@ def main() -> None:
             continue
         last_end[clip] = e
         rng = {"source": clip, "start": round(s, 3), "end": round(e, 3),
-               **{k: v for k, v in c.items() if k not in ("clip", "from", "to")}}
+               **{k: v for k, v in c.items() if k not in ("clip", "from", "to", "tighten")}}
         if "fit" not in rng and r.get("width") and r.get("height"):
             w_, h_ = r["width"], r["height"]
             if int(c.get("rotate", 0)) % 180 == 90:
                 w_, h_ = h_, w_
             if h_ > w_:  # rush vertical (après redressement) : plein cadre en sortie verticale
                 rng["fit"] = "fill"
-        edl["ranges"].append(rng)
-        d = (e - s) / float(c.get("speed", 1.0))
+        tight = c.get("tighten", tighten_default) if c.get("subs", True) is not False else False
+        pieces = [(s, e)]
+        if tight and words:
+            gap_min = float(tight.get("min_gap", 0.7)) if isinstance(tight, dict) else 0.7
+            ws = [w for w in words if w["start"] >= s - 0.05 and w["end"] <= e + 0.05]
+            pieces, a0 = [], s
+            for w1, w2 in zip(ws, ws[1:]):
+                if w2["start"] - w1["end"] >= gap_min:
+                    pieces.append((a0, min(e, w1["end"] + PAD_AFTER)))
+                    a0 = max(s, w2["start"] - PAD_BEFORE)
+            pieces.append((a0, e))
+            pieces = [(x, y) for x, y in pieces if y - x >= 0.5] or [(s, e)]
+        for pi, (x, y) in enumerate(pieces):
+            part = dict(rng, start=round(x, 3), end=round(y, 3))
+            if pi % 2 == 1 and "zoom" not in c:
+                part["zoom"] = float(tight.get("zoom", 1.12)) if isinstance(tight, dict) else 1.12
+            edl["ranges"].append(part)
+        d = sum(y - x for x, y in pieces) / float(c.get("speed", 1.0))
         total += d
         print(f"  {clip:30s} {s:7.2f} → {e:7.2f}  ({d:5.1f}s) {c.get('beat', '')}")
     # Chevauchements entre plans d'un même rush (son ou image répétés par erreur)
