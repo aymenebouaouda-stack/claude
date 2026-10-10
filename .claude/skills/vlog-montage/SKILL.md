@@ -118,6 +118,16 @@ Sous-titres : `bold` (capitales grasses), `natural` (phrases), `serif` (style é
 - `ffmpeg -i final.mp4 -af ebur128=peak=true -f null -` : I ≈ -14 LUFS, true peak ≤ -1.
 - Maximum 3 passes correction/re-rendu ; au-delà, signaler les problèmes restants.
 
+### 6 bis. Livraison
+- L'envoi de fichiers à l'utilisateur dans l'app est limité (constaté le 2026-10-10 : 30 Mio par
+  fichier, malgré un premier message annonçant 500 Mio). Un montage de 30 min en 1080×1920 fait
+  ~1,2 Go : envoyer un **aperçu découpé** avec `split_for_delivery.py` (coupe entre deux plans,
+  2 passes, < 30 Mio par partie), et la version pleine qualité par un autre canal (ex. Google Drive
+  de l'utilisateur avec une autorisation temporaire qu'il fournit).
+- Le conteneur peut redémarrer ou être recyclé : garder les fichiers légers du projet (liste de
+  coupes, réglages, notes) dans un endroit durable choisi par l'utilisateur ; les rushes restent
+  chez lui.
+
 ### 7. Itérer sur les retours, ne jamais retranscrire un rush inchangé
 Noter les décisions dans `<rushes>/edit/project.md` (stratégie, choix, points en suspens).
 
