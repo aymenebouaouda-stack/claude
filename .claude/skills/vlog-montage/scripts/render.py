@@ -33,6 +33,9 @@ EDL :
 Options par plan : "zoom" (ex. 1.12, recadrage central « punch-in »), "fit" (remplace celui de output), "filter" (filtre vidéo ffmpeg appliqué
 avant le cadrage, ex. éclaircir : "eq=brightness=0.06:gamma=1.3"), "gain_db" (gain manuel),
 "subs": false (pas de sous-titres sur ce plan, ex. paroles de chanson).
+Effets « moment fort » : "shake": 8 (tremblement en px pendant "shake_dur" s, défaut 1,0, à
+partir de "shake_at" s), "flash": true (flash blanc d'entrée), "boost_db": 4 (gain ajouté APRÈS
+la normalisation), "sfx": {"file": "/abs/boom.wav", "at": 0.0, "volume": 1.0} (effet sonore mixé).
 Sous-titres : "min_prob" (ex. 0.45) saute les répliques dont la confiance Whisper moyenne est faible.
 Les plans extraits sont mis en cache (edit/cache_segments) : un re-rendu après retouche ne
 ré-encode que les plans modifiés.
@@ -150,6 +153,13 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
         vf = {90: "transpose=1", 180: "hflip,vflip", 270: "transpose=2"}[rot] + "," + vf
     if speed != 1.0:
         vf = f"setpts=PTS/{speed}," + vf
+    if r.get("shake"):  # tremblement : recadrage qui oscille, amorti, puis image fixe
+        a = int(r["shake"])
+        t0, td = float(r.get("shake_at", 0.0)), float(r.get("shake_dur", 1.0))
+        amp = f"{a}*between(t\\,{t0}\\,{t0 + td})*(1-(t-{t0})/{td})"  # virgules échappées (graphe)
+        vf = (f"crop=iw-{2 * a}:ih-{2 * a}:{a}+{amp}*sin(t*47):{a}+{amp}*cos(t*39)," + vf)
+    if r.get("flash"):
+        vf += ",fade=t=in:st=0:d=0.25:color=white"
     if edl.get("grade"):
         vf += "," + edl["grade"]
     vf += f",fps={fps}:start_time=0,tpad=stop_mode=clone:stop_duration=2,format=yuv420p,setsar=1"
@@ -168,11 +178,21 @@ def extract(edl: dict, i: int, r: dict, out: Path, preview: bool) -> float:
             lufs = range_loudness(src, r["start"], r["end"])
             if lufs is not None:
                 gain = max(-12.0, min(15.0, float(edl["normalize_audio"]) - lufs))
+        gain = (gain or 0.0) + float(r.get("boost_db", 0.0))
         if gain:
             af = f"volume={gain:.2f}dB,alimiter=limit=0.95:level=false," + af
     afull = (f"aresample=48000:async=1:first_pts=0,{af},aformat=sample_fmts=s16:channel_layouts=stereo,"
              f"apad,atrim=end_sample={samples}")
-    cmd += ["-filter_complex", f"[0:v]{vf}[v];[{amap}]{afull}[a]",
+    graph = f"[0:v]{vf}[v];[{amap}]{afull}[a]"
+    if r.get("sfx"):  # effet sonore mixé par-dessus, sans changer la durée exacte du plan
+        sfx = r["sfx"]
+        k = 2 if amap == "1:a" else 1
+        cmd += ["-i", sfx["file"]]
+        ms = int(float(sfx.get("at", 0.0)) * 1000)
+        graph = (f"[0:v]{vf}[v];[{amap}]{afull}[a0];[{k}:a]aresample=48000,aformat=sample_fmts=s16:"
+                 f"channel_layouts=stereo,adelay={ms}|{ms},volume={float(sfx.get('volume', 1.0))}[s];"
+                 f"[a0][s]amix=inputs=2:duration=first:normalize=0,atrim=end_sample={samples}[a]")
+    cmd += ["-filter_complex", graph,
             "-map", "[v]", "-frames:v", str(n),
             "-c:v", "libx264", "-bf", "0", "-preset", "veryfast" if preview else o.get("preset", "medium"),
             "-crf", "23" if preview else str(o.get("crf", 18)), "-f", "h264", "-y", str(out.with_suffix(".h264")),
@@ -384,8 +404,10 @@ def main() -> None:
 
         # Sans titres ni sous-titres, la vidéo est copiée telle quelle (pas de 2e compression).
         touched = bool(vparts)
-        vcodec = (["-c:v", "libx264", "-preset", "veryfast" if args.preview else "medium",
-                   "-crf", "23" if args.preview else "18", "-pix_fmt", "yuv420p"]
+        o = edl["output"]  # passe finale : "final_preset"/"final_crf", sinon "preset"/"crf" de la sortie
+        vcodec = (["-c:v", "libx264", "-preset", "veryfast" if args.preview else
+                   o.get("final_preset", o.get("preset", "medium")),
+                   "-crf", "23" if args.preview else str(o.get("final_crf", o.get("crf", 18))), "-pix_fmt", "yuv420p"]
                   if touched else ["-c:v", "copy"])
         vmap = ["-map", f"[{cur}]"] if touched else ["-map", "0:v"]
         fc = ";".join(vparts) + ";" if touched else ""

@@ -154,6 +154,21 @@ Sous-titres : `bold` (capitales grasses), `natural` (phrases), `serif` (style é
 - **Transition « appel entrant »** : `call_card.py --name … --bg rush --bg-start t` (fond
   flouté, icône qui vibre, sonnerie synthétisée sans droits) entre « attends, X m'appelle » et
   la suite.
+- **Mises en contexte** (retour utilisateur : « il y a certaines choses qu'on ne comprend pas ») :
+  `"context": "…"` ou `"overlays": [{"kind": "context", "text": …, "at": s}]` → narration
+  courte (6 à 10 mots) centrée en haut, police marqueur, cartouche sombre ; ancrée sur un
+  instant du rush (survit au resserrage). Ne JAMAIS inventer un fait : n'écrire que ce que
+  l'utilisateur a dit ou ce qu'on entend dans le rush.
+- **Transitions de scène** (`fun_cards.py transition`) : page texte + jingle synthétisé entre
+  deux lieux/moments (« Direction l'épicerie », « Fin de la soirée »…) ; carton façon dessin
+  animé « 2 HOURS LATER… » (`fun_cards.py timecard`) pour une ellipse ; « PAUSE » sur image figée
+  + dessin humoristique (`fun_cards.py pause --image`), le dessin étant fait en SVG et rendu par
+  Chromium headless (pas de générateur d'images : le dire à l'utilisateur).
+- **Moment fort** (ex. « Oui, je le veux ») : `"shake"`, `"flash"`, `"boost_db"`, `"sfx"`
+  (`fun_cards.py sfx --name boom`) sur le plan — sobre, une seule fois.
+- **Discours et récits : en entier** (`"tighten": false`) ; Whisper rate parfois des phrases
+  (vent, brouhaha) et le resserrage supprime alors de la vraie parole : regarder les trous de
+  transcription longs avant de couper.
 - **Paysage YouTube (1920×1080)** : rushes verticaux en `blur` (image entière, côtés floutés),
   choisi automatiquement par `cutlist.py` ; cartons `intro_typewriter.py --size 1920x1080` ;
   sous-titres dimensionnés pour 1080 px de petit côté (`margin_v` 70 par défaut en paysage).

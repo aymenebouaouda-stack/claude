@@ -10,6 +10,10 @@ Trois styles :
   - Label : texte explicatif (« Problème avec la voiture », « Arrivée à Paris »…) en haut à
             gauche, dans un cartouche couleur d'accent, posé par un plan marqué "label": "…"
             (durée "label_dur", 3,5 s par défaut), affiché même si le plan n'a pas de sous-titres.
+  - Contexte : « narration » courte (6-10 mots) centrée en haut, police marqueur (« Vlog Marker »,
+            Permanent Marker, licence Apache 2.0), cartouche sombre : "context": "On arrive à
+            l'hôtel, on retrouve les autres" sur un plan, ou plusieurs avec "overlays":
+            [{"text": …, "at": s depuis le début du plan, "dur": 4.0, "kind": "context"|"label"}].
 Options de l'EDL (clé "subtitles") : style "dynamic", fontsdir, fixes, min_prob, accent,
 keywords (regex), base_size, fort_size, margin_v, label_size, max_chars. Par plan :
 "subs_fixes" (corrections propres à ce plan, ex. un mot mal compris à un seul endroit).
@@ -59,6 +63,7 @@ def build_ass(edl: dict, edl_path: Path, durations: list[float], out: Path, W: i
     fort_size = int(sub.get("fort_size", 96) * k)
     margin_v = int(sub.get("margin_v", 250 if H > W else 70) * k)
     label_size = int(sub.get("label_size", 52) * k)
+    ctx_size = int(sub.get("context_size", 50) * k)
     max_chars = int(sub.get("max_chars", 26))
     fort_gap = float(sub.get("fort_gap", 6.0))
 
@@ -74,6 +79,7 @@ Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour,
 Style: Base,Vlog Montserrat ExtraBold,{base_size},&H00FFFFFF,&H00FFFFFF,&H00000000,&H7A000000,0,0,0,0,100,100,0,0,1,{max(2, int(4*k))},{max(1, int(2*k))},2,60,60,{margin_v},1
 Style: Fort,Vlog Anton,{fort_size},{ass_color(accent)},&H00FFFFFF,&H00000000,&H80000000,0,0,0,0,100,100,1,0,1,{max(3, int(6*k))},{max(1, int(3*k))},2,60,60,{margin_v},1
 Style: Label,Vlog Anton,{label_size},&H00111111,&H00FFFFFF,{ass_color(accent)},&H00000000,0,0,0,0,100,100,1,0,3,{max(6, int(12*k))},0,7,{int(60*k)},60,{int(55*k)},1
+Style: Contexte,Vlog Marker,{ctx_size},&H00FFFFFF,&H00FFFFFF,&H50101010,&H00000000,0,0,0,0,100,100,1,0,3,{max(8, int(16*k))},0,8,{int(160*k)},{int(160*k)},{int(150*k)},1
 Style: Titre,Vlog Anton,{int(fort_size*1.15)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,0,0,0,0,100,100,2,0,1,{max(3, int(6*k))},{max(1, int(3*k))},2,60,60,{int(margin_v*1.4)},1
 
 [Events]
@@ -84,11 +90,24 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     hi = ass_color(accent)
     for r, d in zip(edl["ranges"], durations):
         speed = float(r.get("speed", 1.0))
+        ovs = list(r.get("overlays", []))
         if r.get("label"):
-            ld = float(r.get("label_dur", 3.5))
-            events.append(f"Dialogue: 2,{ts(offset + 0.15)},{ts(offset + 0.15 + ld)},Label,,0,0,0,,"
-                          f"{{\\fad(180,220)\\move({int(-40*k)},{int(55*k)},{int(60*k)},{int(55*k)},0,220)}}"
-                          f"{esc(r['label'])}")
+            ovs.append({"kind": "label", "text": r["label"], "at": r.get("label_at", 0.0),
+                        "dur": r.get("label_dur", 3.5)})
+        if r.get("context"):
+            ovs.append({"kind": "context", "text": r["context"], "at": r.get("context_at", 0.0),
+                        "dur": r.get("context_dur", 4.0)})
+        for ov in ovs:
+            a0 = offset + 0.15 + float(ov.get("at", 0.0)) / speed
+            if ov.get("kind", "context") == "label":
+                ld = float(ov.get("dur", 3.5))
+                events.append(f"Dialogue: 2,{ts(a0)},{ts(a0 + ld)},Label,,0,0,0,,"
+                              f"{{\\fad(180,220)\\move({int(-40*k)},{int(55*k)},{int(60*k)},{int(55*k)},0,220)}}"
+                              f"{esc(ov['text'])}")
+            else:
+                ld = float(ov.get("dur", 4.0))
+                events.append(f"Dialogue: 3,{ts(a0)},{ts(a0 + ld)},Contexte,,0,0,0,,"
+                              f"{{\\fad(250,250)\\fscx90\\fscy90\\t(0,250,\\fscx100\\fscy100)}}{esc(ov['text'])}")
         tfile = tdir / f"{Path(edl['sources'][r['source']]).stem}.json"
         if r.get("mute") or not r.get("subs", True) or not tfile.exists():
             offset += d

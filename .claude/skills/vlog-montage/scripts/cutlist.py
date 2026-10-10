@@ -153,10 +153,22 @@ def main() -> None:
                     a0 = max(s, w2["start"] - PAD_BEFORE)
             pieces.append((a0, e))
             pieces = [(x, y) for x, y in pieces if y - x >= 0.5] or [(s, e)]
+        # textes superposés (label, context, overlays) : ancrés sur un instant du RUSH, puis
+        # rattachés au morceau qui contient cet instant (le resserrage découpe le plan)
+        ovs = [dict(o) for o in rng.pop("overlays", [])]
+        for kind in ("label", "context"):
+            if kind in rng:
+                ovs.append({"kind": kind, "text": rng.pop(kind), "at": rng.pop(f"{kind}_at", 0.0),
+                            "dur": rng.pop(f"{kind}_dur", 3.5 if kind == "label" else 4.0)})
+        for o in ovs:
+            o["src"] = s + float(o.get("at", 0.0))
         for pi, (x, y) in enumerate(pieces):
             part = dict(rng, start=round(x, 3), end=round(y, 3))
-            if pi:  # le texte explicatif ne s'affiche qu'au début du plan
-                part.pop("label", None)
+            mine = [o for o in ovs if (x <= o["src"] < y) or (pi == 0 and o["src"] < x)
+                    or (pi == len(pieces) - 1 and o["src"] >= y)]
+            if mine:
+                part["overlays"] = [{k: v for k, v in dict(o, at=round(max(0.0, min(o["src"], y) - x), 2)).items()
+                                     if k != "src"} for o in mine]
             if pi % 2 == 1 and "zoom" not in c:
                 part["zoom"] = float(tight.get("zoom", 1.12)) if isinstance(tight, dict) else 1.12
             edl["ranges"].append(part)
