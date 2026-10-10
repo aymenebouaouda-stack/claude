@@ -193,16 +193,19 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
             for k, w in enumerate(words):
                 cur.append(w)
                 nxt = words[k + 1] if k + 1 < len(words) else None
-                if nxt is None or re.search(r"[.,!?…]$", w["text"]) or nxt["start"] - w["end"] >= 0.3:
+                # coupure sur fin de phrase, sur virgule si le groupe a déjà 2 mots, ou sur vraie pause
+                if (nxt is None or re.search(r"[.!?…]$", w["text"]) or nxt["start"] - w["end"] >= 0.35
+                        or (w["text"].endswith(",") and len(cur) >= 2)):
                     groups.append(cur)
                     cur = []
             # 2) chaque groupe découpé en morceaux équilibrés (pas de mot orphelin)
+            prev_end_sentence = True
             for g in groups:
                 n = -(-len(g) // max_words)
                 size = -(-len(g) // n)
                 for j in range(0, len(g), size):
                     chunk = g[j:j + size]
-                    first_of_group = j == 0
+                    first_of_group = j == 0 and prev_end_sentence
                     probs = [x["prob"] for x in chunk if "prob" in x]
                     if probs and sum(probs) / len(probs) < min_prob:
                         continue  # transcription trop incertaine : mieux vaut pas de sous-titre qu'un faux
@@ -214,6 +217,7 @@ def build_srt(edl: dict, edl_path: Path, durations: list[float], style: str, out
                     for bad, good in (fixes or {}).items():
                         txt = re.sub(rf"\b{bad}\b", good, txt, flags=re.IGNORECASE)
                     cues.append((a, max(b, a + 0.35), txt.upper() if upper else txt))
+                prev_end_sentence = bool(re.search(r"[.!?…]$", g[-1]["text"]))
         offset += d
     # éviter les chevauchements créés par la durée minimale
     for k in range(len(cues) - 1):
@@ -311,7 +315,10 @@ def main() -> None:
         ln = loudnorm_params(base, extra, fc_audio)
         loud = (f"loudnorm=I=-14:TP=-1:LRA=11:measured_I={ln['input_i']}:measured_TP={ln['input_tp']}:"
                 f"measured_LRA={ln['input_lra']}:measured_thresh={ln['input_thresh']}:"
-                f"offset={ln['target_offset']}:linear=true,aresample=48000")
+                f"offset={ln['target_offset']}:linear=true,aresample=48000,"
+                # Limiteur de crêtes : l'AAC fait déborder les crêtes ; marge de -3 dB
+                # (mesuré : sans limiteur +3,6 dBFS sur un montage de 30 min, avec : -0,4 dBFS)
+                f"alimiter=limit=0.70:attack=2:release=60:level=false")
 
         # ---- vidéo : titres incrustés, puis sous-titres EN DERNIER ----
         out_w, out_h = (int(x) for x in subprocess.run(
