@@ -78,6 +78,11 @@ def main() -> None:
             size -= 2
             f = ImageFont.truetype(args.font, size)
         fonts.append(f)
+    # bloc trop haut (beaucoup de lignes, format paysage) : tout réduire pour tenir dans 88 % de H
+    block_h = sum(int(f.getbbox("Ag")[3] * 1.5) for f in fonts)
+    if block_h > H * 0.88:
+        k = H * 0.88 / block_h
+        fonts = [ImageFont.truetype(args.font, max(10, int(f.size * k))) for f in fonts]
 
     # Planning des frappes : (temps, ligne, nb_caractères visibles)
     events, t = [], 0.6
