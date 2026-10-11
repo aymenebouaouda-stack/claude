@@ -15,7 +15,8 @@ Trois styles :
             l'hôtel, on retrouve les autres" sur un plan, ou plusieurs avec "overlays":
             [{"text": …, "at": s depuis le début du plan, "dur": 4.0, "kind": "context"|"label"}].
 Options de l'EDL (clé "subtitles") : style "dynamic", fontsdir, fixes, min_prob, accent,
-keywords (regex), base_size, fort_size, margin_v, label_size, max_chars. Par plan :
+keywords (regex), base_size, fort_size, margin_v, label_size, max_chars, context_size,
+"labels_as_context": true (une seule écriture : les labels prennent le style Contexte). Par plan :
 "subs_fixes" (corrections propres à ce plan, ex. un mot mal compris à un seul endroit).
 Les tailles sont données pour une image de 1080 px de petit côté (vertical 1080x1920 ou
 paysage 1920x1080) et mises à l'échelle sinon.
@@ -99,7 +100,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         "dur": r.get("context_dur", 4.0)})
         for ov in ovs:
             a0 = offset + 0.15 + float(ov.get("at", 0.0)) / speed
-            if ov.get("kind", "context") == "label":
+            if ov.get("kind", "context") == "label" and not sub.get("labels_as_context"):
                 ld = float(ov.get("dur", 3.5))
                 events.append(f"Dialogue: 2,{ts(a0)},{ts(a0 + ld)},Label,,0,0,0,,"
                               f"{{\\fad(180,220)\\move({int(-40*k)},{int(55*k)},{int(60*k)},{int(55*k)},0,220)}}"
