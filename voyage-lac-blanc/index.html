@@ -1,0 +1,729 @@
+<title>Week-end Lac Blanc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une colonne de lecture large, bandeau de chiffres façon fiche topo, sections balisées comme un GR (trait blanc sur trait rouge). */
+:root {
+  --bg: #f3f6f5;
+  --card: #ffffff;
+  --ink: #16201f;
+  --muted: #586664;
+  --line: #d3dcda;
+  --lake: #23727a;
+  --lake-soft: #dcecec;
+  --gr: #c22f28;
+  --warn: #9a6212;
+  --warn-soft: #f7ecd9;
+  --ok: #2c7349;
+  --ok-soft: #dff0e5;
+  --bad: #a3322c;
+  --bad-soft: #f6e0de;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+    --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+    --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+  --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+  --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15.5px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 64px; }
+a { color: var(--lake); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--gr); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.6rem); font-weight: 800; font-stretch: 78%; line-height: 1; letter-spacing: -0.01em; }
+h2 { font-size: 1.7rem; font-weight: 750; font-stretch: 85%; display: flex; align-items: center; gap: 12px; }
+h3 { font-size: 1.12rem; font-weight: 700; font-stretch: 92%; }
+p { margin: 0; max-width: 68ch; }
+.mono { font-family: var(--mono); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 0.86rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* Balisage GR : blanc au-dessus, rouge en dessous */
+.gr { display: inline-flex; flex-direction: column; width: 26px; flex: none; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.gr i { display: block; height: 7px; }
+.gr i:first-child { background: #ffffff; }
+.gr i:last-child { background: var(--gr); }
+
+header.hero { padding-block: 40px 28px; display: grid; gap: 18px; }
+.hero .lead { font-size: 1.08rem; max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.facts div { padding: 12px 14px 12px 0; display: grid; gap: 2px; }
+.facts b { font-family: var(--display); font-stretch: 80%; font-size: 1.5rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+nav.toc .in { max-width: 1080px; margin: 0 auto; padding-inline: 20px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.toc a { white-space: nowrap; padding: 10px 10px; font-size: 0.88rem; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+nav.toc a:hover { border-bottom-color: var(--gr); }
+
+section { padding-block: 44px 8px; display: grid; gap: 18px; scroll-margin-top: 48px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid2 > * { min-width: 0; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.callout { border-left: 4px solid var(--warn); background: var(--warn-soft); padding: 12px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 6px; }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.callout.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+
+.pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.info { color: var(--lake); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; background: var(--bg); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr.hl td { background: var(--lake-soft); }
+
+/* Carte */
+.mapbox { background: var(--card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+.maplegend { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); }
+.maplegend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+svg text { font-family: var(--body); }
+.mk { cursor: pointer; }
+.mk:focus { outline: none; }
+.mk:focus circle, .mk:hover circle { stroke: var(--gr); stroke-width: 3; }
+
+/* Logements */
+.lodges { display: grid; gap: 10px; }
+.lodge { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 14px; align-items: start; }
+.lodge.active { border-color: var(--gr); box-shadow: 0 0 0 1px var(--gr); }
+.lodge .n { font-family: var(--display); font-stretch: 80%; font-weight: 800; font-size: 1.25rem; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--lake); color: var(--card); grid-row: span 2; }
+.lodge .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.86rem; color: var(--muted); }
+.lodge .price { text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
+.lodge .price b { font-family: var(--display); font-stretch: 85%; font-size: 1.15rem; }
+.lodge .body { grid-column: 2 / -1; display: grid; gap: 6px; font-size: 0.9rem; min-width: 0; }
+.lodge .links { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; }
+@media (max-width: 560px) { .lodge { grid-template-columns: 34px 1fr; } .lodge .price { grid-column: 2; text-align: left; } }
+
+/* Altitude */
+.ladder { display: grid; gap: 0; }
+.ladder .row { display: grid; grid-template-columns: 70px 16px 1fr; align-items: center; gap: 10px; min-height: 38px; }
+.ladder .alt { font-family: var(--mono); font-size: 0.85rem; text-align: right; color: var(--muted); }
+.ladder .bar { width: 4px; height: 100%; min-height: 38px; background: var(--lake); justify-self: center; position: relative; }
+.ladder .bar::after { content: ""; position: absolute; left: -5px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--card); border: 3px solid var(--lake); }
+.ladder .row.top .bar::after { border-color: var(--gr); }
+
+/* Calculateur */
+.calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.calc label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+.calc select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button { font: inherit; background: var(--card); color: var(--ink); border: 0; padding: 8px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.total { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; border-top: 2px solid var(--ink); padding-top: 12px; }
+.total b { font-family: var(--display); font-stretch: 80%; font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Barre de budget 5 niveaux */
+.levels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.levels div { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 10px; display: grid; gap: 2px; min-width: 0; }
+.levels div.mid { border-color: var(--lake); box-shadow: inset 0 3px 0 var(--lake); }
+.levels b { font-family: var(--display); font-stretch: 82%; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .levels { grid-template-columns: 1fr 1fr; } .levels div.mid { grid-column: span 2; } }
+
+/* Météo */
+.wx { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.wx .d { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 4px; }
+.wx .d b { font-family: var(--display); font-stretch: 85%; font-size: 1.1rem; }
+.meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--lake); }
+
+.hikes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.hike { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.hike .stats { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+
+footer { padding-block: 40px 0; font-size: 0.85rem; color: var(--muted); display: grid; gap: 8px; }
+.copybtn { font: inherit; font-size: 0.82rem; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Belledonne · Isère · 23 → 25 octobre 2026 · 4 à 5 personnes · départ d'Orléans</div>
+    <h1>Week-end Lac Blanc</h1>
+    <p class="lead">Tout pour le week-end au Lac Blanc de Belledonne : la rando, la météo, les logements, la voiture et le budget. Ce dossier a été préparé le 12 octobre 2026 à partir de recherches web. Chaque chiffre a sa source, et ce qui n'a pas pu être vérifié est signalé.</p>
+    <div class="facts">
+      <div><span class="eyebrow">Lac</span><b>~2 170 m</b></div>
+      <div><span class="eyebrow">Aller-retour</span><b>11–13 km</b></div>
+      <div><span class="eyebrow">Dénivelé +</span><b>860–1 030 m</b></div>
+      <div><span class="eyebrow">Durée</span><b>6–7 h</b></div>
+      <div><span class="eyebrow">Niveau</span><b>Difficile</b></div>
+      <div><span class="eyebrow">Route Orléans</span><b>~600 km</b></div>
+    </div>
+  </header>
+</div>
+
+<nav class="toc" aria-label="Sommaire"><div class="in">
+  <a href="#decision">Verdict</a><a href="#rando">Rando</a><a href="#carte">Carte</a><a href="#meteo">Météo</a><a href="#logements">Logements</a><a href="#transport">Voiture</a><a href="#budget">Budget</a><a href="#equipement">Équipement</a><a href="#ailleurs">Autres randos</a><a href="#sources">Sources</a>
+</div></nav>
+
+<main class="wrap">
+
+  <section id="decision">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Le verdict en bref</h2>
+    <div id="verdict" class="grid2"></div>
+  </section>
+
+  <section id="rando">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>La randonnée</h2>
+    <p>Le Lac Blanc de Belledonne est sur la commune de Sainte-Agnès, au pied des Trois Pics (Grand Pic 2 977 m, Pic Central, Croix de Belledonne 2 926 m) et face au glacier de Freydane. La plupart des randonneurs partent du parking de Pré Comté / La Souille, à 1 355 m. On monte par la forêt, les cascades du Boulon et la passerelle du Mousset, puis par le refuge Jean Collet ou par la vire des Excellences.</p>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Profil d'altitude</h3>
+        <p class="small muted">Altitudes des points de passage. Les distances entre eux ne sont pas à l'échelle : aucune trace GPS n'a pu être téléchargée.</p>
+        <div class="ladder" role="list">
+          <div class="row top" role="listitem"><span class="alt">2 977 m</span><span class="bar"></span><span>Grand Pic de Belledonne, vu depuis le lac (on n'y monte pas)</span></div>
+          <div class="row top" role="listitem"><span class="alt">~2 170 m</span><span class="bar"></span><span><b>Lac Blanc</b>, objectif. 2 161 à 2 206 m selon les sources</span></div>
+          <div class="row" role="listitem"><span class="alt">~2 130 m</span><span class="bar"></span><span>Col de la Sitre, pour revenir en boucle</span></div>
+          <div class="row" role="listitem"><span class="alt">~1 955 m</span><span class="bar"></span><span>Refuge Jean Collet</span></div>
+          <div class="row" role="listitem"><span class="alt">~1 690 m</span><span class="bar"></span><span>Passerelle du Mousset</span></div>
+          <div class="row" role="listitem"><span class="alt">1 355 m</span><span class="bar"></span><span><b>Parking Pré Comté / La Souille</b>, départ</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Ce qu'il faut savoir</h3>
+        <ul class="clean">
+          <li><b>Comptez 2 à 4 h de montée et 6 à 7 h au total avec les pauses.</b> Un groupe a mis environ 3 h 30 pour monter en octobre 2022.</li>
+          <li><b>Passages raides, câblés et vertigineux</b> (vire des Excellences, passage sous le lac). Avec du verglas, ils deviennent dangereux.</li>
+          <li><b>Au départ, à la fourche de trois sentiers, prenez celui du milieu</b>, qui reste à plat (conseil de Trace Ta Route).</li>
+          <li><b>Accès en voiture</b> : Villard-Bonnot, puis Saint-Mury-Monteymond, puis le col de Pré Long. On finit par environ 2 km de piste non goudronnée avec des ornières : roulez doucement en voiture basse.</li>
+          <li><b>Refuge Jean Collet</b> : gardé de mi-juin à mi-septembre. En octobre, il ouvre certains week-ends sur réservation, sans dates confirmées pour 2026. Appelez le <span class="mono">09 70 03 57 76</span>.</li>
+          <li><b>Eau</b> : il y a de l'eau courante en été, mais le débit d'octobre n'est pas vérifié. Emportez 1,5 à 2 L par personne.</li>
+          <li><b>Réseau téléphonique</b> non vérifié. Téléchargez la carte et le GPX hors ligne. Urgences : <span class="mono">112</span>.</li>
+          <li><b>Carte IGN</b> : TOP 25 <span class="mono">3335 OT</span>. Le parking est a priori gratuit (non vérifié). Il n'y a ni remontée ni navette.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <b>Heure d'hiver dans la nuit du samedi 24 au dimanche 25 octobre.</b>
+      <p>À Grenoble, le soleil se couche vers 18 h 37 le samedi 24, mais vers 17 h 35 le dimanche 25. Faites la rando le <b>samedi</b>, partez du parking à 8 h – 8 h 30 au plus tard, et emportez une frontale chacun.</p>
+    </div>
+    <div class="panel">
+      <h3>Traces GPS et topos</h3>
+      <ul class="clean">
+        <li><a href="https://www.visorando.com/randonnee-lac-blanc-et-col-de-la-sitre-en-boucle-d/" target="_blank" rel="noopener">Visorando : Lac Blanc et col de la Sitre en boucle depuis la Souille</a> (GPX)</li>
+        <li><a href="https://www.alltrails.com/trail/france/isere/lac-blanc-et-refuge-jean-collet" target="_blank" rel="noopener">AllTrails : Lac Blanc et refuge Jean Collet</a> (4,7/5 sur 144 avis, classé « Hard »)</li>
+        <li><a href="https://fr.wikiloc.com/itineraires-randonnee/pre-comte-lac-blanc-belledonne-175688968" target="_blank" rel="noopener">Wikiloc : Pré Comté – Lac Blanc</a></li>
+        <li><a href="https://www.altituderando.com/Lac-Blanc-2171m-chaine-de-Belledonne" target="_blank" rel="noopener">Altituderando : topo et comptes rendus récents</a>. À consulter dans la semaine avant la sortie pour voir l'état du sentier.</li>
+        <li><a href="https://www.trace-ta-route.com/randonnee-belledonne-lac-blanc/" target="_blank" rel="noopener">Trace Ta Route : récit et photos</a>, <a href="https://endorfeen.com/fr/le-lac-blanc-belledonne-plus-beau-lac-des-alpes/" target="_blank" rel="noopener">Endorfeen</a>, <a href="https://hellyandthemountains.fr/2020/07/13/lac-blanc-de-belledonne-2171m/" target="_blank" rel="noopener">Helly and the Mountains</a></li>
+        <li>Photos libres : <a href="https://commons.wikimedia.org/wiki/Category:Grand_pic_de_Belledonne" target="_blank" rel="noopener">Wikimedia Commons, Grand pic de Belledonne</a> (panorama du lac de H. Rival, CC BY-SA 4.0)</li>
+      </ul>
+      <p class="small muted">Aucun retour TikTok ou Instagram propre à ce lac n'a été trouvé. Les conseils viennent de blogs, de fiches rando et d'avis AllTrails.</p>
+    </div>
+  </section>
+
+  <section id="carte">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>La carte</h2>
+    <p>Positions du départ, du lac et des logements. Cliquez sur un numéro pour voir le logement correspondant. Il n'y a pas de fond de carte : la page ne peut pas charger d'images externes. Utilisez les liens Google Maps pour l'itinéraire réel.</p>
+    <div class="mapbox">
+      <svg id="map" viewBox="0 0 800 560" role="img" aria-label="Carte des logements et du départ de la randonnée"></svg>
+      <div class="maplegend">
+        <span><i class="dot" style="background:var(--gr)"></i>Parking de départ</span>
+        <span><i class="dot" style="background:var(--lake);border-radius:2px"></i>Lac Blanc</span>
+        <span><i class="dot" style="background:var(--card);border:2px solid var(--lake)"></i>Logement (n° = classement)</span>
+        <span>Position au centre de la commune, sauf mention contraire</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="mapbox">
+        <svg id="mapHike" viewBox="0 0 520 420" role="img" aria-label="Schéma des points de passage de la randonnée"></svg>
+        <div class="maplegend"><span>Les tirets relient les points en ligne droite. Ce n'est pas le tracé du sentier : utilisez le GPX.</span></div>
+      </div>
+      <div class="panel">
+        <h3>Points GPS</h3>
+        <div class="tablewrap" style="border:0"><table id="poiTable"><thead><tr><th>Point</th><th>Coordonnées</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="meteo">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Météo : y aller le 24 ou reporter ?</h2>
+    <div id="meteoBody" style="display:grid;gap:16px"></div>
+  </section>
+
+  <section id="logements">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Logements</h2>
+    <p>Classés par temps de route estimé jusqu'au parking de Pré Comté, du plus proche au plus loin. <b>Aucun prix n'a pu être vérifié pour les dates du 23 au 25 octobre</b> : les sites de réservation étaient bloqués pour la recherche. Les prix affichés sont des prix « à partir de » ou des forfaits trouvés dans les résultats de recherche. Les temps de route sont des estimations à ±15 min.</p>
+    <div class="callout">
+      <b>Avant de réserver</b>
+      <p>Hors saison, beaucoup de gîtes ne louent qu'à la semaine. Demandez un week-end de 2 nuits, le prix total ménage compris et la taxe de séjour. Demandez aussi si une 5<sup>e</sup> personne est possible.</p>
+    </div>
+    <div id="lodges" class="lodges"></div>
+    <div class="panel">
+      <h3>Pour ta liste de favoris Airbnb</h3>
+      <p class="small">Ouvre chaque lien, clique sur le cœur et range l'annonce dans une liste « Lac Blanc ». Tu pourras ensuite la partager depuis Airbnb.</p>
+      <ul class="clean" id="airbnbList"></ul>
+      <p class="small"><b>Recherches pré-remplies</b> (23 → 25 oct., 4 adultes), pour vérifier les prix et trouver d'autres annonces. Ces liens n'ont pas pu être testés :</p>
+      <ul class="clean" id="searchLinks"></ul>
+    </div>
+  </section>
+
+  <section id="transport">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Voiture : carburant, péages, location</h2>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Trajet Orléans → Pré Comté</h3>
+        <ul class="clean">
+          <li><b>Environ 590 à 615 km et 6 h 15 à 6 h 45 sans pause</b> à l'aller. Les calculs prennent 1 250 km aller-retour.</li>
+          <li><b>Itinéraire A</b> : A71 (Bourges, Clermont) → A89 → Lyon → A43/A48. Environ 570 km, péage 56,75 à 60,90 € l'aller (montants non datés).</li>
+          <li><b>Itinéraire B</b> : A10 → A19 → A6 → A43/A48 → A41. 596 km et 5 h 37 jusqu'à Crolles, péage 74,50 € l'aller (Villefranche-Limas 58,40 €, La Boisse 2,40 €, Voreppe 13,70 €, tarifs « mis à jour en mai 2026 » selon le site).</li>
+          <li><b>L'A41 entre Grenoble et Crolles est gratuite.</b> Sortez à Crolles ou au Versoud en venant de Grenoble.</li>
+          <li><b>La Loi Montagne ne s'applique pas</b> : l'obligation de pneus hiver ou chaînes court du 1<sup>er</sup> novembre au 31 mars. Des chaussettes à neige restent utiles si une première neige tombe.</li>
+          <li>Faites le plein avant de partir : 16 % des stations signalaient une rupture le 11 octobre.</li>
+        </ul>
+        <p class="small muted">Vérifiez le péage exact sur <a href="https://www.autoroutes.fr" target="_blank" rel="noopener">autoroutes.fr</a> avant de partir. Les grilles 2026 officielles n'ont pas pu être ouvertes.</p>
+      </div>
+      <div class="panel">
+        <h3>Prix des carburants</h3>
+        <div class="tablewrap" style="border:0"><table>
+          <thead><tr><th>Carburant</th><th class="num">€ / L</th><th>Relevé</th></tr></thead>
+          <tbody>
+            <tr><td>Gazole</td><td class="num">2,347</td><td class="small">07/10/2026</td></tr>
+            <tr><td>SP95-E10</td><td class="num">2,140</td><td class="small">07/10/2026</td></tr>
+            <tr><td>SP98</td><td class="num">2,272</td><td class="small">11/10/2026</td></tr>
+            <tr><td>E85</td><td class="num">0,910</td><td class="small">11/10/2026</td></tr>
+            <tr><td>Recharge rapide</td><td class="num">0,45–0,80 / kWh</td><td class="small">Ionity 0,55 €, sources contradictoires</td></tr>
+          </tbody>
+        </table></div>
+        <p class="small muted">Moyennes nationales relevées par <a href="https://prix-carburant.eu/article/prix-carburants-2026-10-07" target="_blank" rel="noopener">prix-carburant.eu</a> et <a href="https://media.roole.fr/quotidien/au-volant/prix-des-carburants-voici-les-tarifs-en-france-ce-dimanche-11-octobre-2026" target="_blank" rel="noopener">Roole</a>. Cette année, le gazole est plus cher que l'essence.</p>
+      </div>
+    </div>
+    <div class="tablewrap"><table id="carTable">
+      <thead><tr><th>Option</th><th class="num">Énergie A/R</th><th class="num">Péages A/R</th><th class="num">Location</th><th class="num">Total groupe</th><th class="num">÷ 4</th><th class="num">÷ 5</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Louer une voiture à Orléans</h3>
+        <p class="small">Prix d'appel relevés sur des comparateurs, sans devis pour ces dates. Location de 3 jours (vendredi → dimanche).</p>
+        <ul class="clean small">
+          <li>5 places, citadine à SUV : 23 à 49 € par jour, soit environ 69 à 147 € les 3 jours (<a href="https://www.kayak.fr/location-voiture-Orleans.29954.cars.ksp" target="_blank" rel="noopener">Kayak</a>, <a href="https://www.momondo.fr/location-de-voiture/Orleans-29954" target="_blank" rel="noopener">Momondo</a>, <a href="https://www.liligo.fr/location-voiture/france/orleans/gare-orleans" target="_blank" rel="noopener">Liligo gare d'Orléans</a>)</li>
+          <li>Van 9 places : 66 à 106 € par jour, soit environ 198 à 318 € les 3 jours (<a href="https://www.kayak.fr/location-van-9-personnes-Orleans.29954.9-lcv.ksp" target="_blank" rel="noopener">Kayak vans</a>)</li>
+          <li>Agences : <a href="https://www.sixt.fr/location-voiture/france/orleans/" target="_blank" rel="noopener">Sixt Orléans</a>, <a href="https://www.ada.fr/3-location-minibus-orleans" target="_blank" rel="noopener">ADA minibus Orléans</a>, <a href="https://www.francecars.fr/vehicules/minibus-van/minibus-9-places-c142.html" target="_blank" rel="noopener">France Cars 9 places</a>, <a href="https://turo.com/fr/fr/location-voiture/france/orleans-45" target="_blank" rel="noopener">Turo</a></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>À vérifier sur l'offre de location</h3>
+        <ul class="clean small">
+          <li><b>Kilométrage inclus d'au moins 1 300 km.</b> Exemple : France Cars inclut 700 km, puis facture 0,46 € par km supplémentaire.</li>
+          <li>Montant de la franchise et de la caution, âge minimum, ancienneté du permis, conducteur additionnel.</li>
+          <li>Exclusion d'assurance sur piste non goudronnée : les 2 derniers kilomètres jusqu'au parking sont une piste.</li>
+          <li>Van : s'il mesure 2 m de haut ou moins, il reste en classe 1 au péage.</li>
+          <li>Le train n'est pas intéressant : 6 h 41 avec au moins une correspondance, 138 à 292 € par personne aller-retour, et aucun transport en commun ne monte au parking.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="budget">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Budget du week-end</h2>
+    <p>Logement (2 nuits) + voiture (carburant et péages). Les repas, les courses et l'équipement ne sont pas comptés. Le logement va du moins cher au plus cher parmi ceux dont un prix a été trouvé. La voiture va du diesel personnel au SUV essence personnel.</p>
+    <div>
+      <div class="seg" role="group" aria-label="Nombre de personnes" style="margin-bottom:10px">
+        <button type="button" id="p4" aria-pressed="true">4 personnes</button><button type="button" id="p5" aria-pressed="false">5 personnes</button>
+      </div>
+      <div class="levels" id="levels"></div>
+    </div>
+    <div class="panel">
+      <h3>Calculer votre propre combinaison</h3>
+      <div class="calc">
+        <label for="selLodge">Logement<select id="selLodge"></select></label>
+        <label for="selCar">Voiture<select id="selCar"></select></label>
+      </div>
+      <div class="total" id="calcOut"></div>
+      <p class="small muted" id="calcNote"></p>
+    </div>
+  </section>
+
+  <section id="equipement">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Équipement</h2>
+    <div class="grid2">
+      <div class="panel">
+        <h3>La note complète de deux pages</h3>
+        <p>Modèles Decathlon, prix, avis, pointure et rodage, plus le budget par personne et pour le groupe : <a href="https://claude.ai/code/artifact/c508ac20-4ed3-45ac-9322-89b11e9b9c8c" target="_blank" rel="noopener">Équipement rando Lac Blanc</a>.</p>
+        <ul class="clean small">
+          <li><b>Chaussures : <a href="https://www.decathlon.fr/p/chaussures-impermeables-de-randonnee-montagne-mh500-mid-gris-homme/330874/c210c71m8618769" target="_blank" rel="noopener">Quechua MH500 Mid imperméable homme</a> / <a href="https://www.decathlon.fr/p/chaussures-de-randonnee-montagne-impermeables-femme-mh500-vert/330907/c277c377m8664396" target="_blank" rel="noopener">femme</a></b>, 54,99 à 74,99 €. Achetez-les avant le mercredi 14 octobre pour avoir le temps de les roder.</li>
+          <li>Kit complet en partant de zéro : environ 283 € par personne en version économique, 500 € en version recommandée.</li>
+          <li>Crampons légers à 24,99 € : à décider le jeudi 22 octobre selon la neige.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Dans chaque sac, le jour J</h3>
+        <ul class="clean small">
+          <li>Veste imperméable, polaire, doudoune pour les pauses, bonnet, gants</li>
+          <li>Frontale chargée (la nuit tombe tôt)</li>
+          <li>1,5 à 2 L d'eau, pique-nique, en-cas ; un thermos de thé pour le groupe</li>
+          <li>Couverture de survie, téléphone chargé avec la carte hors ligne</li>
+          <li>Lunettes de soleil, crème solaire</li>
+          <li>Pour le groupe : trousse de secours, sac poubelle pour protéger les affaires</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="ailleurs">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Autres belles randos en France</h2>
+    <p>Pour les prochains week-ends. Les chiffres viennent des fiches citées. Le badge indique si la rando est faisable fin octobre.</p>
+    <div class="hikes" id="hikes"></div>
+  </section>
+
+  <section id="sources">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Sources et limites</h2>
+    <div class="panel small">
+      <p><b>Comment ce dossier a été fait.</b> Sept agents de recherche ont travaillé en parallèle, puis un agent a revérifié les points clés. L'environnement de recherche ne pouvait pas ouvrir les pages web : Airbnb, Booking, Decathlon et Météo-France étaient bloqués. Les informations viennent donc des extraits renvoyés par le moteur de recherche, chacune avec l'URL de sa page. Les prix sont à confirmer sur chaque site avant de réserver ou d'acheter.</p>
+      <ul class="clean" id="sourceList"></ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Préparé le 12 octobre 2026. À revoir le mercredi 21 octobre avec la météo à jour.</p>
+  </footer>
+</main>
+
+<script>
+const TRAIL = { lat: 45.19853, lon: 5.93157 };
+const LAKE = { lat: 45.1801, lon: 5.97186 };
+const POIS = [
+  { name: "Parking Pré Comté / La Souille", alt: "~1 355 m", lat: 45.19853, lon: 5.93157, kind: "start" },
+  { name: "Refuge Jean Collet", alt: "~1 955 m", lat: 45.192984, lon: 5.967586, kind: "hut" },
+  { name: "Lac Blanc", alt: "~2 170 m", lat: 45.1801, lon: 5.97186, kind: "lake" },
+  { name: "Pointe de la Sitre (près du col)", alt: "2 195 m", lat: 45.183538, lon: 5.95061, kind: "pt" },
+  { name: "Croix de Belledonne", alt: "2 926 m", lat: 45.16861, lon: 5.98833, kind: "peak" },
+  { name: "Grand Pic de Belledonne", alt: "2 977 m", lat: 45.17111, lon: 5.99167, kind: "peak" },
+  { name: "Parking Pré Marcel (autre départ)", alt: "~1 290 m", lat: 45.22151, lon: 5.95494, kind: "alt" },
+  { name: "Le Chenevrey (départ bas)", alt: "~910 m", lat: 45.204524, lon: 5.945182, kind: "alt" }
+];
+
+/* prix2n = total 2 nuits pour le groupe si un prix a été trouvé (prix d'appel ou forfait), sinon null */
+const LODGES = [
+  { name: "La Chamoussière, ferme du XVIII<sup>e</sup>", plat: "Airbnb", commune: "Saint-Mury-Monteymond", lat: 45.2227, lon: 5.9273, cap: "6 voyageurs · 2 ch. · 5 lits", rating: "4,35 (26 avis)", five: "oui", min: 25, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.airbnb.fr/rooms/15670111", airbnb: true,
+    note: "60 m² au 1er étage d'une ferme en pierre, grande terrasse plein sud face à Belledonne et à la Chartreuse. Hameau vers 800 m, sans commerce (vallée à 10 min). C'est la commune par laquelle on monte au parking." },
+  { name: "Gîtes et chambres d'hôtes de Sainte-Agnès", plat: "Cybevasion / gites.fr", commune: "Sainte-Agnès", lat: 45.2361, lon: 5.9247, cap: "Plusieurs offres de 4 à 9 pers.", rating: "", five: "selon l'offre", min: 30, prix2n: null, priceTxt: "Chalet la Colombière dès 72 €/nuit (prix d'appel, par chambre a priori)",
+    url: "https://www.cybevasion.fr/gites-sainte-agnes-v15667.html", url2: ["gites.fr Sainte-Agnès", "https://www.gites.fr/gites_sainte-agnes_16302.html"],
+    note: "La commune du lac. Annuaire, pas une annonce unique : Gîtes du Grand Replomb « Le Préau » (9 pers., 130 m², piscine et spa), maison de campagne (6 pers., 3 ch.), chalet la Colombière (chambres d'hôtes)." },
+  { name: "Orionde, gîte en Belledonne", plat: "Greengo / Gîtes de France", commune: "Laval-en-Belledonne", lat: 45.258, lon: 5.937, cap: "6 pers. (4 selon Gîtes de France) · 2 ch. · 68 m²", rating: "4,9 (Greengo)", five: "à confirmer", min: 35, prix2n: 234, priceTxt: "Dès 117 €/nuit, ménage et linge inclus",
+    url: "https://www.greengo.voyage/hote/orionde-gite-en-belledonne", url2: ["Fiche Gîtes de France", "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/orionde-gite-en-belledonne-3-38g206120"],
+    note: "Le plus proche des logements dont on a un prix. Capacité contradictoire selon les sites : à confirmer avant de réserver à 5." },
+  { name: "Gîte de Belledonne", plat: "Gîtes de France", commune: "Laval-en-Belledonne", lat: 45.2595, lon: 5.9385, cap: "9 pers. · 5 ch. · 165 m²", rating: "", five: "oui", min: 35, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.gites-de-france.com/en/auvergne-rhone-alpes/isere/gite-de-belledonne-38g206100",
+    note: "Grand et proche. Il se loue peut-être seulement à la semaine." },
+  { name: "« Descansar, sports y gastronomia en Belledonne »", plat: "Airbnb", commune: "Revel", lat: 45.186, lon: 5.872, cap: "6 voyageurs · 2 ch. · 6 lits", rating: "4,96 (23-25 avis), Coup de cœur voyageurs", five: "oui", min: 38, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.airbnb.fr/rooms/976802132778634536", airbnb: true,
+    note: "Jardin, terrasse couverte, balcon de Belledonne vers 700 m. Le trajet par Saint-Jean-le-Vieux et Sainte-Agnès est à vérifier sur une carte." },
+  { name: "Gîte 4P – Belledonne – Grenoble", plat: "Airbnb", commune: "Revel", lat: 45.1835, lon: 5.869, cap: "4 voyageurs max · 3 ch. · 3 lits", rating: "5,0 (3 avis)", five: "non", min: 38, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.airbnb.fr/rooms/1162977969917217097", airbnb: true,
+    note: "Trois chambres séparées, mais limité à 4 personnes. Taux de réponse de l'hôte : 60 %." },
+  { name: "Gîte de Combeloup", plat: "Gîtes de France", commune: "Murianette", lat: 45.183, lon: 5.816, cap: "6 pers. · 3 ch.", rating: "", five: "oui", min: 43, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/de-combeloup-38g271101",
+    note: "Grange rénovée au-dessus de Domène, pratique pour les courses." },
+  { name: "La Gélinotte, gîte d'étape", plat: "Site du gîte", commune: "Revel, hameau de Freydières", lat: 45.196, lon: 5.915, cap: "Dortoirs + tiny house (4 max)", rating: "", five: "selon dortoir", min: 48, prix2n: null, priceTxt: "Tarifs trouvés trop anciens (2021)",
+    url: "https://www.lagelinottebelledonne.fr/g%C3%AEte-d-%C3%A9tape/",
+    note: "À 1,3 km à vol d'oiseau du parking, mais environ 45-50 min par la route. Ouverture fin octobre non confirmée : téléphonez au 04 76 89 81 39." },
+  { name: "Maison au calme, 8 pers.", plat: "Greengo", commune: "Saint-Martin-d'Uriage", lat: 45.152, lon: 5.836, cap: "8 pers. · 4 ch. · 2 sdb", rating: "4,7 (Greengo) · 9,4/10 (Travelocity)", five: "oui", min: 48, prix2n: 340, priceTxt: "Dès 170 €/nuit",
+    url: "https://www.greengo.voyage/hote/maison-au-calme-8-pers-a-20-min-de-chamrousse",
+    note: "Le plus spacieux, avec un jardin de 1 300 m². Environ 21 à 25 € par personne et par nuit au prix d'appel." },
+  { name: "L'Elgia", plat: "Gîtes de France", commune: "Saint-Martin-d'Uriage", lat: 45.1535, lon: 5.8385, cap: "5 pers. · 3 ch. · 96 m²", rating: "", five: "oui (5 max)", min: 48, prix2n: null, priceTxt: "Prix non trouvé · caution 1 000 €",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lelgia-38g422122",
+    note: "Maison individuelle avec poêle à bois." },
+  { name: "Le Vieux Robinier", plat: "Gîtes de France", commune: "Saint-Martin-d'Uriage", lat: 45.1505, lon: 5.8335, cap: "6 pers. · 3 ch. · 104 m²", rating: "", five: "oui", min: 48, prix2n: null, priceTxt: "Prix non trouvé · ménage et chauffage inclus",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-vieux-robinier-38g422100",
+    note: "Hameau à 800 m. Demandez si un week-end est possible." },
+  { name: "La Tour en Belledonne", plat: "Greengo (aussi sur Airbnb)", commune: "Theys", lat: 45.302, lon: 5.999, cap: "5 pers. · 2 ch. · 3 lits", rating: "4,92 (72 avis Airbnb)", five: "oui (5)", min: 50, prix2n: 144, priceTxt: "Dès 72 €/nuit, linge inclus",
+    url: "https://www.greengo.voyage/hote/la-tour-en-belledonne",
+    note: "Le moins cher trouvé, neuf (2024) et très bien noté. Mais seulement 3 lits pour 5 personnes." },
+  { name: "Gîte Les Ayes (L'entre 2 cols)", plat: "Gîtes de France / Greengo", commune: "Theys", lat: 45.3035, lon: 6.0015, cap: "6 pers. · 3 ch. · 75 m²", rating: "3 épis", five: "oui", min: 50, prix2n: 430, priceTxt: "Forfait week-end 350 € + ménage 80 € (date du tarif incertaine)",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lentre-2-cols-gite-les-ayes-38g504107", url2: ["Prix réels selon les dates (Greengo)", "https://www.greengo.voyage/hote/l-entre-2-cols-belledonne/logement/gite-les-ayes-gite"],
+    note: "Le seul prix trouvé exactement au format du séjour : du vendredi soir au dimanche soir. Plain-pied, cour close, caution 700 €." },
+  { name: "La Clé des Champs", plat: "Gîtes de France", commune: "Theys", lat: 45.2995, lon: 5.9965, cap: "6 pers. · 3 ch. · 141 m²", rating: "", five: "oui", min: 50, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-cle-des-champs-38g504118",
+    note: "Très spacieux, dans un hameau à environ 2 km du village." },
+  { name: "Hôtel les Mésanges", plat: "Booking / office de tourisme", commune: "Saint-Martin-d'Uriage", lat: 45.145, lon: 5.835, cap: "2 chambres doubles (ou triple + double à 5)", rating: "", five: "possible", min: 50, prix2n: 342, prix2nMax: 766, priceTxt: "83 à 189 € la chambre double par nuit, petit-déj. 14 €/pers.",
+    url: "https://m.booking.com/hotel/fr/les-ma-c-sanges-saint-martin-d-uriage.html",
+    note: "Le seul logement dont l'ouverture fin octobre est confirmée (ouvert jusqu'au 31/12/2026). Il y a un restaurant. Le total compte 2 chambres sur 2 nuits, plus la taxe de 1,20 € par personne et par nuit, sans le petit-déjeuner." },
+  { name: "L'Étape du Fanfoué", plat: "Greengo / Alpes-Isère", commune: "Chamrousse 1650", lat: 45.1235, lon: 5.877, cap: "5 chambres d'hôtes, certaines pour 4", rating: "", five: "probable", min: 65, prix2n: null, priceTxt: "60 à 150 € (unité non précisée)",
+    url: "https://www.greengo.voyage/hote/l-etape-du-fanfoue",
+    note: "Ouvert en automne d'après l'office de tourisme. Mais Chamrousse est à environ 1 h du départ." },
+  { name: "Appartement 45 m² Roche Béranger", plat: "Airbnb", commune: "Chamrousse 1750", lat: 45.1105, lon: 5.8875, cap: "6 voyageurs · 1 ch. · 4 lits", rating: "4,92 (26 avis)", five: "oui", min: 70, prix2n: null, priceTxt: "Prix non trouvé",
+    url: "https://www.airbnb.fr/rooms/511340087260894545", airbnb: true,
+    note: "Station quasi vide fin octobre, et environ 1 h 10 du départ. À garder en dernier recours." }
+];
+
+const CARS = [
+  { id: "diesel", label: "Voiture perso diesel (5,5 L/100)", energy: 154.9, tolls: 113.5, rental: 0 },
+  { id: "essence", label: "Voiture perso citadine essence (6,5 L/100)", energy: 182.57, tolls: 121.8, rental: 0 },
+  { id: "suv", label: "Voiture perso SUV essence (8 L/100)", energy: 257.06, tolls: 149.0, rental: 0 },
+  { id: "ev", label: "Voiture perso électrique (18 kWh/100, 0,55 €/kWh)", energy: 129.94, tolls: 121.8, rental: 0 },
+  { id: "loc", label: "Location compacte essence, 3 jours", energy: 182.57, tolls: 121.8, rental: 123 },
+  { id: "locsuv", label: "Location SUV essence, 3 jours", energy: 257.06, tolls: 149.0, rental: 132 },
+  { id: "van", label: "Location van 9 places diesel, 3 jours (moyenne)", energy: 246.44, tolls: 121.8, rental: 258 }
+];
+
+const HIKES = [
+  { name: "Lac du Crozet", region: "Belledonne, Isère", stats: "~640 m D+ · 3 h 30–4 h A/R · moyenne", late: true, note: "Si pas de neige (lac à 1 974 m). Plus court et plus facile que le Lac Blanc : une bonne solution de repli.", url: "https://www.altituderando.com/IMG/pdf/6/0/7/lac-du-crozet-depuis-pre-raymond.pdf", photo: "https://www.enfant-en-voyage.com/lac-du-crozet/" },
+  { name: "Lacs Robert", region: "Chamrousse, Isère", stats: "8,8 km · 924 m D+ · 5 h 10 · moyenne", late: true, note: "Variante courte de 7,65 km pour 496 m de D+ (3 h 35). Si pas de neige vers 2 000 m.", url: "https://www.visorando.com/randonnee-les-lacs-robert/", photo: "https://www.decathlon-outdoor.com/fr-fr/inspire/france/randonnee-lacs-robert-isere" },
+  { name: "Chamechaude", region: "Chartreuse, Isère", stats: "7 km · 750 m D+ · 4–5 h · moyenne", late: true, note: "Le point culminant de la Chartreuse (2 082 m), par temps sec et sans neige.", url: "https://www.isere-tourisme.com/sites/default/files/sitra/file/511914_topos-rando-chartreuse-sommet-chamechaude-col-de-porte.pdf", photo: "https://commons.wikimedia.org/wiki/File:L%27Oeille_veille_sur_Chamechaude.jpg" },
+  { name: "Lac de la Muzelle", region: "Oisans, Écrins", stats: "11,9 km · 1 250 m D+ · 6 h 30–7 h · difficile", late: false, note: "Plutôt l'été ou en septembre.", url: "https://www.visorando.com/randonnee-le-lac-de-la-muzelle/", photo: "https://www.randozone.com/photo/8005/lac-de-la-muzelle" },
+  { name: "Plateau d'Emparis", region: "La Grave, Hautes-Alpes", stats: "16,3 km · 845 m D+ · 6 h", late: false, note: "La Meije se reflète dans le lac Noir. Mieux de juillet à septembre.", url: "https://geotrek-admin.ecrins-parcnational.fr/api/fr/treks/985759/lac-noir-et-lac-lerie-depuis-le-chazelet.pdf?portal=1", photo: "https://commons.wikimedia.org/wiki/File:Emparis-_massif_de_la_Meije_depuis_le_lac_Noir.jpg" },
+  { name: "Lac Blanc de Chamonix", region: "Aiguilles Rouges, Haute-Savoie", stats: "7 km · 500 m D+ · 3 h (avec le téléphérique)", late: false, note: "Le lac « TikTok » face au Mont-Blanc. L'été seulement, quand la remontée fonctionne.", url: "https://www.auvergnerhonealpes-tourisme.com/fiches/randonnee-au-lac-blanc-depuis-la-flegere/", photo: "https://commons.wikimedia.org/wiki/File:Lac_Blanc_%282352_m.%29_02.JPG" },
+  { name: "Cirque de Gavarnie", region: "Hautes-Pyrénées", stats: "9,3 km · 450 m D+ · 3 h 30", late: true, note: "Cirque classé à l'UNESCO, grande cascade de 422 m.", url: "https://www.tourisme-occitanie.com/fr/fiche/itineraire/le-cirque-de-gavarnie-gavarnie_TFOITIMIP0650000084/", photo: "https://commons.wikimedia.org/wiki/File:Gavarnie_recti_small_Wikimedia_Commons.jpg" },
+  { name: "Lac de Gaube", region: "Cauterets, Hautes-Pyrénées", stats: "5,5 km · 271 m D+ · 2 h 20 · facile", late: true, note: "Face au Vignemale. Le télésiège est probablement fermé hors saison.", url: "https://www.visorando.com/randonnee-lac-de-gaube-a-cauterets-1731m/", photo: "https://www.randozone.com/photo/6965/lac-de-gaube" },
+  { name: "Lac d'Oô", region: "Luchonnais, Haute-Garonne", stats: "6,8 km · 551 m D+ · ~3 h", late: true, note: "Lac dominé par une grande cascade.", url: "https://www.decathlon-outdoor.com/fr-fr/inspire/france/randonnee-lac-d-oo-haute-garonne", photo: "https://commons.wikimedia.org/wiki/File:Lac_d%27Oo_1900.jpg" },
+  { name: "Calanque d'En-Vau", region: "Calanques, Bouches-du-Rhône", stats: "12,2 km · 200 m D+ · ~3 h", late: true, note: "Idéal en automne. Vérifiez l'accès aux massifs (risque incendie).", url: "https://calanques-parcnational.fr/fr/la-calanque-den-vau-par-la-gardiole-calanques-marseille-cassis-la-ciotat-randonnee-balade-visiter-a-pied", photo: "https://calanques-parcnational.fr/fr/belvedere-et-calanque-den-vau" },
+  { name: "Sentier Blanc-Martel", region: "Gorges du Verdon", stats: "13,6 km · 1 266 m D+ · ~7 h 30 · difficile", late: true, note: "Traversée en aller simple, il faut 2 voitures. Le chalet de la Maline est ouvert jusqu'au 31/10.", url: "https://provence-alpes-cotedazur.com/que-faire/itineraires-randonnee/sentier-blanc-martel-la-palud-sur-verdon-fr-4348476/", photo: "https://www.visorando.com/randonnee-gorges-du-verdon-sentier-blanc-martel-pa/" },
+  { name: "Puy de Sancy", region: "Massif central", stats: "7 km · 560 m D+ · ~3 h", late: true, note: "Par beau temps : vent et brouillard fréquents.", url: "https://www.sancy.com/circuits/circuits-randonnee/montee-sancy-mont-dore/", photo: "https://commons.wikimedia.org/wiki/File:Puy_de_Sancy_and_cable_car_station.JPG" },
+  { name: "Tour du Hohneck", region: "Vosges", stats: "8 km · 591 m D+ · 4 h", late: true, note: "Cirque du Frankenthal et lac du Schiessrothried. Avant la neige.", url: "https://www.visorando.com/randonnee-tour-du-hohneck-par-le-frankenthal-et-le/", photo: "https://commons.wikimedia.org/wiki/File:00_0187_Hohneck_-_Vogesen.jpg" },
+  { name: "Étretat – Cap d'Antifer", region: "Normandie", stats: "12,4 km · 387 m D+ · 4 h 40", late: true, note: "Toute l'année. Prudence au bord des falaises.", url: "https://www.visorando.com/randonnee-etretat-et-le-phare-du-cap-d-antifer/", photo: "https://commons.wikimedia.org/wiki/File:L%27Aiguille_et_la_Porte_d%27Aval-Etretat-Normandie.jpg" },
+  { name: "Pointe du Raz (GR34)", region: "Finistère", stats: "16,4 km · 350 m D+ · 5 h 40", late: true, note: "Toute l'année, gare aux tempêtes d'automne.", url: "https://www.visorando.com/randonnee-tour-de-la-pointe-du-raz-depuis-plogoff/", photo: "https://commons.wikimedia.org/wiki/File:PointDuRaz_DSC00375_PtrQs.jpg" },
+  { name: "Capu Rossu", region: "Piana, Corse-du-Sud", stats: "9,5 km · 454 m D+ · ~3 h 30", late: true, note: "Granit rouge au-dessus des Calanche de Piana. Pas d'eau ni d'ombre.", url: "https://www.visit-corsica.com/fr/Mon-sejour/Itineraires/Tous-les-itineraires/TOUR-GENOISE-DE-CAPO-ROSSO", photo: "https://www.lonelyplanet.fr/article/rando-en-corse-cap-sur-le-capo-rosso" }
+];
+
+const SOURCES = [
+  ["Destination Belledonne, Lac Blanc", "https://www.destination-belledonne.com/la-chaine-de-belledonne/patrimoines/patrimoine-naturel/lac-blanc/"],
+  ["Isère Rando, Lac Blanc depuis Pré Conté", "https://www.isere-rando.com/topos/lac-blanc-depuis-pre-conte/"],
+  ["Altituderando, Lac Blanc 2171 m", "https://www.altituderando.com/Lac-Blanc-2171m-chaine-de-Belledonne"],
+  ["Visorando, Lac Blanc (Belledonne)", "https://www.visorando.com/randonnee-lac-blanc-belledonne.html"],
+  ["Refuge Jean Collet", "https://www.refugejeancollet.com/"],
+  ["CoParking, parking Pré Comté (coordonnées)", "https://coparking.ch/fr/France/parkings/parking-pre-comte-la-souille-37605"],
+  ["IGN Rando, Lac Blanc de Belledonne", "https://ignrando.fr/fr/parcours/38488-le-lac-blanc-de-belledonne"],
+  ["Lever et coucher du soleil, Grenoble", "https://calendar.center/fr/lever-et-coucher-de-soleil/grenoble/"],
+  ["Changement d'heure 2026", "https://www.calendriergratuit.fr/changement-d-heure.html"],
+  ["Distance et péages Orléans → Crolles", "https://distanceenvoiture.fr/fr/itineraire/Orl%C3%A9ans/Crolles"],
+  ["Itinéraire Orléans → Grenoble", "https://www.l-itineraire.com/de_orleans_a_grenoble"],
+  ["Dossier AREA A41 (section gratuite Grenoble → Crolles)", "https://concertation-a41sud.aprr.fr/documents/260521_V7_AREA_DOSSIER_CONCERTATION_A41_SUD.pdf"],
+  ["Prix des carburants au 07/10/2026", "https://prix-carburant.eu/article/prix-carburants-2026-10-07"],
+  ["Hôtel les Mésanges, tarifs 2026", "https://www.alpes-isere.com/?p=134554"],
+  ["Les Ayes, forfait week-end", "https://cparici.com/fr/annonce/gites-lentre-2-cols-belledonne-les-ayes/"],
+  ["Office de tourisme de Chamrousse, hébergements ouverts en automne", "https://www.chamrousse.com/hebergement-ouvert-octobre-novembre.html"],
+  ["SNCF Connect, Orléans → Grenoble", "https://www.sncf-connect.com/train/trajet/orleans/grenoble"]
+];
+
+/* ---------- utilitaires ---------- */
+const fmt = (n, d = 0) => n.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = n => fmt(Math.round(n)) + " €";
+const gmaps = (lat, lon) => `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+const el = (tag, attrs = {}, html = "") => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); e.innerHTML = html; return e; };
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs = {}) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+/* ---------- carte des logements ---------- */
+function drawMap(svg, points, opts) {
+  const W = opts.w, H = opts.h, pad = opts.pad;
+  const lats = points.map(p => p.lat), lons = points.map(p => p.lon);
+  let minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+  const spanX = (maxLon - minLon) * k, spanY = maxLat - minLat;
+  const s = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+  const offX = (W - spanX * s) / 2, offY = (H - spanY * s) / 2;
+  const P = (lat, lon) => [offX + (lon - minLon) * k * s, offY + (maxLat - lat) * s];
+  // quadrillage tous les 0,05° (ou 0,01°)
+  const step = opts.grid;
+  const g = sv("g", { stroke: "var(--line)", "stroke-width": 1 });
+  for (let la = Math.ceil(minLat / step) * step; la <= maxLat + 1e-9; la += step) { const [, y] = P(la, minLon); if (y > 0 && y < H) { g.append(sv("line", { x1: 0, x2: W, y1: y, y2: y })); const t = sv("text", { x: 6, y: y - 4, fill: "var(--muted)", "font-size": 10 }); t.textContent = la.toFixed(2) + "° N"; g.append(t); } }
+  for (let lo = Math.ceil(minLon / step) * step; lo <= maxLon + 1e-9; lo += step) { const [x] = P(minLat, lo); if (x > 0 && x < W) { g.append(sv("line", { x1: x, x2: x, y1: 0, y2: H })); const t = sv("text", { x: x + 4, y: H - 6, fill: "var(--muted)", "font-size": 10 }); t.textContent = lo.toFixed(2) + "° E"; g.append(t); } }
+  svg.append(sv("rect", { x: 0, y: 0, width: W, height: H, fill: "var(--card)" }), g);
+  // échelle
+  const km = opts.scaleKm, px = km / 111.32 * s; // 1° de latitude ≈ 111,32 km
+  const sb = sv("g", { transform: `translate(${W - px - 24},${24})` });
+  sb.append(sv("rect", { x: 0, y: 0, width: px, height: 5, fill: "var(--ink)" }));
+  const st = sv("text", { x: px / 2, y: 20, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)" }); st.textContent = km + " km"; sb.append(st);
+  svg.append(sb);
+  const n = sv("text", { x: W - 24, y: 58, "text-anchor": "end", "font-size": 12, "font-weight": 600, fill: "var(--muted)" }); n.textContent = "N ↑"; svg.append(n);
+  return P;
+}
+
+function renderMap() {
+  const svg = document.getElementById("map");
+  const pts = LODGES.map(l => ({ lat: l.lat, lon: l.lon })).concat([TRAIL, LAKE, { lat: 45.1885, lon: 5.7245 }]);
+  const P = drawMap(svg, pts, { w: 800, h: 560, pad: 46, grid: 0.05, scaleKm: 5 });
+  // repère Grenoble
+  const [gx, gy] = P(45.1885, 5.7245);
+  svg.append(sv("rect", { x: gx - 5, y: gy - 5, width: 10, height: 10, fill: "var(--muted)" }));
+  const gt = sv("text", { x: gx + 9, y: gy + 4, "font-size": 12, fill: "var(--muted)" }); gt.textContent = "Grenoble"; svg.append(gt);
+  // trait départ → lac
+  const [tx, ty] = P(TRAIL.lat, TRAIL.lon), [lx, ly] = P(LAKE.lat, LAKE.lon);
+  svg.append(sv("line", { x1: tx, y1: ty, x2: lx, y2: ly, stroke: "var(--gr)", "stroke-width": 2, "stroke-dasharray": "5 4" }));
+  svg.append(sv("rect", { x: lx - 7, y: ly - 7, width: 14, height: 14, rx: 3, fill: "var(--lake)" }));
+  const lt = sv("text", { x: lx + 11, y: ly + 4, "font-size": 12, "font-weight": 600, fill: "var(--lake)" }); lt.textContent = "Lac Blanc"; svg.append(lt);
+  svg.append(sv("circle", { cx: tx, cy: ty, r: 8, fill: "var(--gr)", stroke: "var(--card)", "stroke-width": 2 }));
+  const tt = sv("text", { x: tx + 11, y: ty - 8, "font-size": 12, "font-weight": 600, fill: "var(--gr)" }); tt.textContent = "Départ Pré Comté"; svg.append(tt);
+  // logements (dessinés du plus loin au plus proche pour que les proches soient au-dessus)
+  // les logements d'une même commune se superposent : on les écarte en cercle autour du point
+  const pos = LODGES.map(l => P(l.lat, l.lon));
+  const done = new Set();
+  pos.forEach((p, i) => {
+    if (done.has(i)) return;
+    const grp = pos.map((q, j) => j).filter(j => Math.hypot(pos[j][0] - p[0], pos[j][1] - p[1]) < 18);
+    grp.forEach(j => done.add(j));
+    if (grp.length > 1) {
+      const cx = grp.reduce((a, j) => a + pos[j][0], 0) / grp.length, cy = grp.reduce((a, j) => a + pos[j][1], 0) / grp.length;
+      grp.forEach((j, n) => { const a = -Math.PI / 2 + n * 2 * Math.PI / grp.length; pos[j] = [cx + 15 * Math.cos(a), cy + 15 * Math.sin(a)]; });
+    }
+  });
+  LODGES.map((l, i) => [l, i]).reverse().forEach(([l, i]) => {
+    const [x, y] = pos[i];
+    const g = sv("g", { class: "mk", tabindex: 0, role: "button", "aria-label": `Logement ${i + 1} : ${l.name.replace(/<[^>]+>/g, "")}` });
+    g.append(sv("circle", { cx: x, cy: y, r: 11, fill: "var(--card)", stroke: "var(--lake)", "stroke-width": 2 }));
+    const t = sv("text", { x, y: y + 4, "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--ink)" }); t.textContent = i + 1; g.append(t);
+    const go = () => focusLodge(i);
+    g.addEventListener("click", go); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    svg.append(g);
+  });
+}
+
+function renderHikeMap() {
+  const svg = document.getElementById("mapHike");
+  const P = drawMap(svg, POIS, { w: 520, h: 420, pad: 50, grid: 0.01, scaleKm: 1 });
+  const order = [POIS[0], POIS[1], POIS[2]];
+  const d = order.map((p, i) => { const [x, y] = P(p.lat, p.lon); return (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }).join(" ");
+  svg.append(sv("path", { d, fill: "none", stroke: "var(--gr)", "stroke-width": 2.5, "stroke-dasharray": "6 5" }));
+  POIS.forEach(p => {
+    const [x, y] = P(p.lat, p.lon);
+    const color = p.kind === "start" ? "var(--gr)" : p.kind === "lake" ? "var(--lake)" : p.kind === "peak" ? "var(--ink)" : "var(--muted)";
+    if (p.kind === "peak") svg.append(sv("path", { d: `M${x} ${y - 8} L${x + 7} ${y + 5} L${x - 7} ${y + 5} Z`, fill: color }));
+    else svg.append(sv("circle", { cx: x, cy: y, r: p.kind === "start" || p.kind === "lake" ? 7 : 5, fill: color, stroke: "var(--card)", "stroke-width": 2 }));
+    const right = x < 330;
+    const t = sv("text", { x: right ? x + 10 : x - 10, y: y + 4, "text-anchor": right ? "start" : "end", "font-size": 11.5, fill: "var(--ink)", "font-weight": p.kind === "lake" || p.kind === "start" ? 600 : 400 });
+    t.textContent = p.name.replace(/ \(.*\)/, ""); svg.append(t);
+  });
+  const tb = document.querySelector("#poiTable tbody");
+  POIS.forEach(p => {
+    const tr = el("tr");
+    tr.innerHTML = `<td>${p.name}<br><span class="small muted">${p.alt}</span></td><td class="mono small">${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</td><td class="small"><a href="${gmaps(p.lat, p.lon)}" target="_blank" rel="noopener">Maps</a></td>`;
+    tb.append(tr);
+  });
+}
+
+/* ---------- logements ---------- */
+function renderLodges() {
+  const box = document.getElementById("lodges");
+  LODGES.forEach((l, i) => {
+    const c = el("article", { class: "lodge", id: "lg" + i });
+    const priced = l.prix2n != null;
+    const priceHtml = priced
+      ? `<b>${l.prix2nMax ? eur(l.prix2n) + " – " + eur(l.prix2nMax) : eur(l.prix2n)}</b><br><span class="small muted">2 nuits, groupe</span>`
+      : `<span class="pill warn">prix à demander</span>`;
+    c.innerHTML = `
+      <span class="n">${i + 1}</span>
+      <div style="min-width:0"><h3>${l.name}</h3>
+        <div class="meta"><span>${l.commune}</span><span>${l.plat}</span><span>≈ ${l.min} min du parking (estim.)</span></div></div>
+      <div class="price">${priceHtml}</div>
+      <div class="body">
+        <div class="meta"><span>${l.cap}</span>${l.rating ? `<span>Note ${l.rating}</span>` : ""}<span>5<sup>e</sup> personne : ${l.five}</span></div>
+        <p>${l.note}</p>
+        <p class="small muted">${l.priceTxt}</p>
+        <div class="links"><a href="${l.url}" target="_blank" rel="noopener">Voir l'annonce</a>${l.url2 ? `<a href="${l.url2[1]}" target="_blank" rel="noopener">${l.url2[0]}</a>` : ""}<a href="${gmaps(l.lat, l.lon)}" target="_blank" rel="noopener">Google Maps</a></div>
+      </div>`;
+    box.append(c);
+  });
+  const al = document.getElementById("airbnbList");
+  LODGES.forEach((l, i) => { if (l.airbnb) al.append(el("li", {}, `<a href="${l.url}" target="_blank" rel="noopener">n° ${i + 1} · ${l.name}</a> <span class="muted small">(${l.commune})</span>`)); });
+  const q = "checkin=2026-10-23&checkout=2026-10-25&adults=4";
+  const S = [
+    ["Airbnb · Saint-Mury-Monteymond", `https://www.airbnb.fr/s/Saint-Mury-Monteymond/homes?${q}`],
+    ["Airbnb · Sainte-Agnès (Isère)", `https://www.airbnb.fr/s/Sainte-Agn%C3%A8s--Is%C3%A8re/homes?${q}`],
+    ["Airbnb · Villard-Bonnot", `https://www.airbnb.fr/s/Villard-Bonnot/homes?${q}`],
+    ["Airbnb · Laval-en-Belledonne", `https://www.airbnb.fr/s/Laval-en-Belledonne/homes?${q}`],
+    ["Airbnb · Revel (Isère)", `https://www.airbnb.fr/s/Revel--Is%C3%A8re/homes?${q}`],
+    ["Booking · Villard-Bonnot", "https://www.booking.com/searchresults.fr.html?ss=Villard-Bonnot&checkin=2026-10-23&checkout=2026-10-25&group_adults=4&no_rooms=1&group_children=0"],
+    ["Booking · Crolles", "https://www.booking.com/searchresults.fr.html?ss=Crolles&checkin=2026-10-23&checkout=2026-10-25&group_adults=4&no_rooms=1&group_children=0"],
+    ["Abritel · Villard-Bonnot", "https://www.abritel.fr/search?destination=Villard-Bonnot&startDate=2026-10-23&endDate=2026-10-25&adults=4"],
+    ["Gîtes de France · Belledonne", "https://www.gites-de-france-alpes.com/hebergements-belledonne.html"],
+    ["Cybevasion · Saint-Mury-Monteymond (gîtes l'Eterlou, Langeanat…)", "https://www.cybevasion.fr/tous-les-hebergements-saint-mury-monteymond-v15668.html"]
+  ];
+  const sl = document.getElementById("searchLinks");
+  S.forEach(([t, u]) => sl.append(el("li", {}, `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)));
+}
+
+function focusLodge(i) {
+  document.querySelectorAll(".lodge.active").forEach(e => e.classList.remove("active"));
+  const c = document.getElementById("lg" + i);
+  c.classList.add("active");
+  c.scrollIntoView({ block: "center" });
+}
+
+/* ---------- voiture ---------- */
+function renderCars() {
+  const tb = document.querySelector("#carTable tbody");
+  CARS.forEach(c => {
+    const tot = c.energy + c.tolls + c.rental;
+    tb.append(el("tr", {}, `<td>${c.label}</td><td class="num">${eur(c.energy)}</td><td class="num">${eur(c.tolls)}</td><td class="num">${c.rental ? eur(c.rental) : "–"}</td><td class="num"><b>${eur(tot)}</b></td><td class="num">${eur(tot / 4)}</td><td class="num">${eur(tot / 5)}</td>`));
+  });
+}
+
+/* ---------- budget ---------- */
+let people = 4;
+function lodgePrices() {
+  const arr = [];
+  LODGES.forEach(l => { if (l.prix2n != null) { arr.push(l.prix2n); if (l.prix2nMax) arr.push(l.prix2nMax); } });
+  return arr;
+}
+function renderLevels() {
+  const lp = lodgePrices();
+  const lMin = Math.min(...lp), lMax = Math.max(...lp), lAvg = lp.reduce((a, b) => a + b, 0) / lp.length;
+  const own = CARS.filter(c => !c.rental).filter(c => c.id !== "ev").map(c => c.energy + c.tolls);
+  const cMin = Math.min(...own), cMax = Math.max(...own), cAvg = CARS.find(c => c.id === "essence");
+  const cAvgV = cAvg.energy + cAvg.tolls;
+  const min = lMin + cMin, avg = lAvg + cAvgV, max = lMax + cMax;
+  const L = [["Minimum", min], ["Entre min. et moyenne", (min + avg) / 2], ["Moyenne", avg], ["Entre moyenne et max.", (avg + max) / 2], ["Maximum", max]];
+  const box = document.getElementById("levels"); box.innerHTML = "";
+  L.forEach(([t, v], i) => box.append(el("div", { class: i === 2 ? "mid" : "" }, `<span class="eyebrow">${t}</span><b>${eur(v / people)}</b><span class="small muted">par pers. · ${eur(v)} au total</span>`)));
+}
+function renderCalc() {
+  const sL = document.getElementById("selLodge"), sC = document.getElementById("selCar");
+  if (!sL.options.length) {
+    LODGES.forEach((l, i) => { if (l.prix2n != null) { sL.append(new Option(`n° ${i + 1} · ${l.name.replace(/<[^>]+>/g, "")} (${eur(l.prix2n)})`, i + ":lo")); if (l.prix2nMax) sL.append(new Option(`n° ${i + 1} · ${l.name} haut de fourchette (${eur(l.prix2nMax)})`, i + ":hi")); } });
+    CARS.forEach(c => sC.append(new Option(c.label, c.id)));
+    sL.value = "12:lo"; sC.value = "essence";
+    sL.addEventListener("change", renderCalc); sC.addEventListener("change", renderCalc);
+  }
+  const [li, side] = sL.value.split(":"); const l = LODGES[+li];
+  const lv = side === "hi" ? l.prix2nMax : l.prix2n;
+  const c = CARS.find(x => x.id === sC.value);
+  const cv = c.energy + c.tolls + c.rental;
+  const tot = lv + cv;
+  document.getElementById("calcOut").innerHTML = `<div><span class="eyebrow">Par personne (${people})</span><br><b>${eur(tot / people)}</b></div><div><span class="eyebrow">Total groupe</span><br><b>${eur(tot)}</b></div><div class="small muted">Logement ${eur(lv)} · voiture ${eur(cv)}</div>`;
+  document.getElementById("calcNote").textContent = "Les prix des logements sont des prix « à partir de » trouvés en ligne, sans devis pour ces dates. Le ménage et la taxe de séjour peuvent s'y ajouter. Les repas ne sont pas comptés.";
+}
+function setPeople(n) { people = n; document.getElementById("p4").setAttribute("aria-pressed", n === 4); document.getElementById("p5").setAttribute("aria-pressed", n === 5); renderLevels(); renderCalc(); }
+document.getElementById("p4").addEventListener("click", () => setPeople(4));
+document.getElementById("p5").addEventListener("click", () => setPeople(5));
+
+/* ---------- autres randos ---------- */
+function renderHikes() {
+  const box = document.getElementById("hikes");
+  HIKES.forEach(h => box.append(el("article", { class: "hike" }, `
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><h3>${h.name}</h3><span class="pill ${h.late ? "ok" : "bad"}">${h.late ? "fin oct. possible" : "été"}</span></div>
+    <span class="small muted">${h.region}</span><span class="stats">${h.stats}</span><p class="small">${h.note}</p>
+    <div class="links small" style="display:flex;gap:14px;flex-wrap:wrap">${h.url ? `<a href="${h.url}" target="_blank" rel="noopener">Fiche rando</a>` : ""}${h.photo ? `<a href="${h.photo}" target="_blank" rel="noopener">Photos</a>` : ""}</div>`)));
+}
+
+function renderSources() {
+  const ul = document.getElementById("sourceList");
+  SOURCES.forEach(([t, u]) => ul.append(el("li", {}, `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)));
+}
+
+/* ---------- météo et verdict : remplis plus bas ---------- */
+const METEO = null;
+function renderMeteo() {}
+function renderVerdict() {}
+
+renderMap(); renderHikeMap(); renderLodges(); renderCars(); renderLevels(); renderCalc(); renderHikes(); renderSources(); renderMeteo(); renderVerdict();
+</script>
