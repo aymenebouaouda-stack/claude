@@ -721,9 +721,72 @@ function renderSources() {
 }
 
 /* ---------- météo et verdict : remplis plus bas ---------- */
-const METEO = null;
-function renderMeteo() {}
-function renderVerdict() {}
+const WX = [
+  { d: "Ven. 23", p1: 22, p5: 10, tmax: 8.2, tmin: 0.3, park: 13.5, note: "Neige : 6 % · rafales médianes 20 km/h" },
+  { d: "Sam. 24", p1: 24, p5: 12, tmax: 7.7, tmin: 0.9, park: 13.0, note: "Neige : 2 % · rafales médianes 21 km/h" },
+  { d: "Dim. 25", p1: 32, p5: 14, tmax: 6.2, tmin: -0.5, park: 11.5, note: "Neige : 6 % · rafales jusqu'à 39 km/h (P90)" }
+];
+function renderMeteo() {
+  const box = document.getElementById("meteoBody");
+  box.innerHTML = `
+    <p>Prévisions de l'ensemble ECMWF (50 membres) du 12 octobre, ramenées à l'altitude du lac (2 170 m). À 11–13 jours, ce n'est qu'une tendance. Données lues sur les dépôts publics de l'ECMWF, de la NOAA et d'Open-Meteo, car les sites météo étaient bloqués pour la recherche.</p>
+    <div class="wx">${WX.map(w => `<div class="d"><span class="eyebrow">${w.d} octobre</span><b>${fmt(w.tmax, 1)} / ${fmt(w.tmin, 1)} °C</b><span class="small muted">max / min au lac (médiane) · ${fmt(w.park, 1)} °C max au parking</span><span class="small">Pluie &gt; 1 mm : <b>${w.p1} %</b> · &gt; 5 mm : ${w.p5} %</span><div class="meter" aria-hidden="true"><i style="width:${w.p1}%"></i></div><span class="small muted">${w.note}</span></div>`).join("")}</div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Ce que disent les autres modèles</h3>
+        <ul class="clean small">
+          <li><b>GEFS (NOAA, 31 membres)</b> : 35 % de risque de pluie vendredi et samedi, 29 % dimanche.</li>
+          <li><b>GFS</b> : isotherme 0 °C vers 3 500 – 4 300 m. L'air est doux, donc pas de neige attendue au lac selon ce run, très incertain à cette échéance.</li>
+          <li><b>Week-end du 31 octobre</b> : les tendances (GEFS étendu sur 16 membres, EC46) le donnent plus humide et environ 2 °C plus froid. GEFS donne 50 à 62 % de risque de pluie et 19 à 25 % de neige. C'est très peu fiable à J+18.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Climatologie 2000–2025 (ERA5)</h3>
+        <div class="tablewrap" style="border:0"><table>
+          <thead><tr><th></th><th class="num">23–25 oct.</th><th class="num">30 oct.–1<sup>er</sup> nov.</th></tr></thead>
+          <tbody>
+            <tr><td>Jours avec plus de 1 mm de pluie</td><td class="num">44 %</td><td class="num">41 %</td></tr>
+            <tr><td>Tmax / Tmin moyennes au lac</td><td class="num">6,4 / −2,8 °C</td><td class="num">5,6 / −4,5 °C</td></tr>
+            <tr class="hl"><td>Jours de neige</td><td class="num">6,4 %</td><td class="num">16,7 %</td></tr>
+            <tr><td>Années avec au moins un jour sec sur trois</td><td class="num">84,6 %</td><td class="num">84,6 %</td></tr>
+          </tbody>
+        </table></div>
+        <p class="small muted">La pluie est la même sur les deux week-ends (±10 points d'incertitude). Le second est plus froid la nuit et compte 2,6 fois plus de jours de neige.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <b>Règle de décision pour le mercredi 21 octobre</b>
+      <p>Reportez ou passez au plan B si la prévision annonce plus de 5 mm de pluie sur le créneau, plus de 2 à 3 cm de neige au-dessus de 2 000 m, ou des rafales au-dessus de 60 km/h. Ces seuils sont une proposition de bon sens, pas une norme officielle. Suivez la prévision de Sainte-Agnès sur <a href="https://meteofrance.com" target="_blank" rel="noopener">Météo-France</a> et les comptes rendus récents sur <a href="https://www.altituderando.com/Lac-Blanc-2171m-chaine-de-Belledonne" target="_blank" rel="noopener">Altituderando</a>.</p>
+    </div>`;
+}
+function renderVerdict() {
+  document.getElementById("verdict").innerHTML = `
+    <div class="callout ok">
+      <b>Visez le samedi 24 octobre, décision le mercredi 21</b>
+      <p>Le 12 octobre, le scénario dominant est sec et doux : 24 % de risque de pluie samedi selon l'ensemble ECMWF, et un isotherme 0 °C très haut. Reporter au 31 octobre ne gagne rien sur la pluie et ajoute du froid, de la neige et 20 minutes de nuit en plus. Le dimanche 25 est un repli moins bon : un peu plus de risque, et la nuit tombe vers 17 h 35.</p>
+    </div>
+    <div class="callout bad">
+      <b>Une rando difficile pour des débutants</b>
+      <p>Comptez environ 1 000 m de montée et 6 à 7 h, avec des passages câblés. Montez par le refuge Jean Collet, partez du parking à 8 h 30 au plus tard et faites demi-tour à 13 h. S'il a neigé, renoncez. Le plan B est le <a href="#ailleurs">Lac du Crozet</a> : 9,3 km, 684 m, sans passage câblé, au départ de Pré Raymond, tout près.</p>
+    </div>
+    <div class="callout">
+      <b>À faire cette semaine</b>
+      <ul class="clean small">
+        <li>Acheter et commencer à roder les chaussures (MH500 Mid).</li>
+        <li>Réserver le logement. Les Ayes à Theys propose un forfait week-end à 430 € ; Orionde à Laval démarre à 117 € la nuit.</li>
+        <li>Appeler la mairie de Saint-Mury-Monteymond pour savoir si la piste vers Pré Comté est ouverte.</li>
+        <li>Télécharger le GPX et la carte hors ligne.</li>
+      </ul>
+    </div>
+    <div class="panel" style="grid-column:1/-1">
+      <b>Coût estimé</b>
+      <p>Pour la combinaison moyenne, logement et voiture compris (hors repas), comptez environ <b>${eur(avgTotal() / 4)}</b> par personne à 4, ou <b>${eur(avgTotal() / 5)}</b> à 5. <a href="#budget">Voir le détail</a>.</p>
+    </div>`;
+}
+function avgTotal() {
+  const lp = lodgePrices(); const lAvg = lp.reduce((a, b) => a + b, 0) / lp.length;
+  const c = CARS.find(c => c.id === "essence"); return lAvg + c.energy + c.tolls;
+}
 
 renderMap(); renderHikeMap(); renderLodges(); renderCars(); renderLevels(); renderCalc(); renderHikes(); renderSources(); renderMeteo(); renderVerdict();
 </script>
