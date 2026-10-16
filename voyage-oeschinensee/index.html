@@ -1,0 +1,610 @@
+<title>Week-end Oeschinensee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : même fiche topo que le Lac Blanc ; sections balisées comme un chemin de montagne suisse (blanc-rouge-blanc). */
+:root {
+  --bg: #f3f6f5;
+  --card: #ffffff;
+  --ink: #16201f;
+  --muted: #586664;
+  --line: #d3dcda;
+  --lake: #23727a;
+  --lake-soft: #dcecec;
+  --gr: #c22f28;
+  --warn: #9a6212;
+  --warn-soft: #f7ecd9;
+  --ok: #2c7349;
+  --ok-soft: #dff0e5;
+  --bad: #a3322c;
+  --bad-soft: #f6e0de;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+    --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+    --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+  --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+  --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15.5px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 64px; }
+a { color: var(--lake); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--gr); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.6rem); font-weight: 800; font-stretch: 78%; line-height: 1; letter-spacing: -0.01em; }
+h2 { font-size: 1.7rem; font-weight: 750; font-stretch: 85%; display: flex; align-items: center; gap: 12px; }
+h3 { font-size: 1.12rem; font-weight: 700; font-stretch: 92%; }
+p { margin: 0; max-width: 68ch; }
+.mono { font-family: var(--mono); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 0.86rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* Balisage suisse des chemins de montagne : blanc, rouge, blanc */
+.gr { display: inline-flex; flex-direction: column; width: 26px; flex: none; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.gr i { display: block; height: 7px; }
+.gr i:first-child, .gr i:last-child { background: #ffffff; }
+.gr i:nth-child(2) { background: var(--gr); }
+
+header.hero { padding-block: 40px 28px; display: grid; gap: 18px; }
+.hero .lead { font-size: 1.08rem; max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.facts div { padding: 12px 14px 12px 0; display: grid; gap: 2px; }
+.facts b { font-family: var(--display); font-stretch: 80%; font-size: 1.5rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+nav.toc .in { max-width: 1080px; margin: 0 auto; padding-inline: 20px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.toc a { white-space: nowrap; padding: 10px 10px; font-size: 0.88rem; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+nav.toc a:hover { border-bottom-color: var(--gr); }
+
+section { padding-block: 44px 8px; display: grid; gap: 18px; scroll-margin-top: 48px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid2 > * { min-width: 0; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.callout { border-left: 4px solid var(--warn); background: var(--warn-soft); padding: 12px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 6px; }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.callout.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+
+.pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.info { color: var(--lake); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; background: var(--bg); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr.hl td { background: var(--lake-soft); }
+
+/* Carte */
+.mapbox { background: var(--card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+.maplegend { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); }
+.maplegend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+svg text { font-family: var(--body); }
+.mk { cursor: pointer; }
+.mk:focus { outline: none; }
+.mk:focus circle, .mk:hover circle { stroke: var(--gr); stroke-width: 3; }
+
+/* Logements */
+.lodges { display: grid; gap: 10px; }
+.lodge { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 14px; align-items: start; }
+.lodge.active { border-color: var(--gr); box-shadow: 0 0 0 1px var(--gr); }
+.lodge .n { font-family: var(--display); font-stretch: 80%; font-weight: 800; font-size: 1.25rem; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--lake); color: var(--card); grid-row: span 2; }
+.lodge .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.86rem; color: var(--muted); }
+.lodge .price { text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
+.lodge .price b { font-family: var(--display); font-stretch: 85%; font-size: 1.15rem; }
+.lodge .body { grid-column: 2 / -1; display: grid; gap: 6px; font-size: 0.9rem; min-width: 0; }
+.lodge .links { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; }
+@media (max-width: 560px) { .lodge { grid-template-columns: 34px 1fr; } .lodge .price { grid-column: 2; text-align: left; } }
+
+/* Altitude */
+.ladder { display: grid; gap: 0; }
+.ladder .row { display: grid; grid-template-columns: 70px 16px 1fr; align-items: center; gap: 10px; min-height: 38px; }
+.ladder .alt { font-family: var(--mono); font-size: 0.85rem; text-align: right; color: var(--muted); }
+.ladder .bar { width: 4px; height: 100%; min-height: 38px; background: var(--lake); justify-self: center; position: relative; }
+.ladder .bar::after { content: ""; position: absolute; left: -5px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--card); border: 3px solid var(--lake); }
+.ladder .row.top .bar::after { border-color: var(--gr); }
+
+/* Calculateur */
+.calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.calc label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+.calc select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button { font: inherit; background: var(--card); color: var(--ink); border: 0; padding: 8px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.total { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; border-top: 2px solid var(--ink); padding-top: 12px; }
+.total b { font-family: var(--display); font-stretch: 80%; font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Barre de budget 5 niveaux */
+.levels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.levels div { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 10px; display: grid; gap: 2px; min-width: 0; }
+.levels div.mid { border-color: var(--lake); box-shadow: inset 0 3px 0 var(--lake); }
+.levels b { font-family: var(--display); font-stretch: 82%; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .levels { grid-template-columns: 1fr 1fr; } .levels div.mid { grid-column: span 2; } }
+
+/* Météo */
+.wx { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.wx .d { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 4px; }
+.wx .d b { font-family: var(--display); font-stretch: 85%; font-size: 1.1rem; }
+.meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--lake); }
+
+.hikes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.hike { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.hike .stats { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+
+footer { padding-block: 40px 0; font-size: 0.85rem; color: var(--muted); display: grid; gap: 8px; }
+.copybtn { font: inherit; font-size: 0.82rem; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Kandersteg · Oberland bernois · 23 → 25 octobre 2026 · 4 à 5 personnes · départ d'Orléans</div>
+    <h1>Week-end Oeschinensee</h1>
+    <p class="lead">Le lac d'Oeschinen, au-dessus de Kandersteg, avec un logement côté Valais (Sierre ou Sion) et le train-autos du Lötschberg. Ce dossier a été préparé le 12 octobre 2026 à partir de recherches web et de données météo brutes. Chaque chiffre a sa source, et ce qui n'a pas pu être vérifié est signalé.</p>
+    <div class="facts">
+      <div><span class="eyebrow">Lac</span><b>1 578 m</b></div>
+      <div><span class="eyebrow">Boucle panoramique</span><b>8,4–9 km</b></div>
+      <div><span class="eyebrow">Dénivelé +</span><b>450–500 m</b></div>
+      <div><span class="eyebrow">Marche</span><b>3–3 h 30</b></div>
+      <div><span class="eyebrow">Télécabine A/R</span><b>CHF 36</b></div>
+      <div><span class="eyebrow">Route Orléans → Sion</span><b>~626 km</b></div>
+    </div>
+  </header>
+</div>
+
+<nav class="toc" aria-label="Sommaire"><div class="in">
+  <a href="#decision">Verdict</a><a href="#rando">Rando</a><a href="#carte">Carte</a><a href="#meteo">Météo</a><a href="#logements">Logements</a><a href="#transport">Voiture</a><a href="#budget">Budget</a><a href="#equipement">Équipement</a><a href="#sources">Sources</a>
+</div></nav>
+
+<main class="wrap">
+
+  <section id="decision">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Le verdict en bref</h2>
+    <div class="grid2">
+      <div class="callout ok">
+        <b>Gardez le samedi 24, avec le dimanche 25 en repli</b>
+        <p>Le 12 octobre, le scénario dominant est sec et doux : 14 % de risque de pluie samedi selon l'ensemble ECMWF, et une semaine plus sèche et plus ensoleillée que la normale selon EC46. À 12 jours, ce n'est qu'une tendance. Décision finale le mardi 20 ou le mercredi 21 octobre sur <a href="https://www.meteosuisse.admin.ch" target="_blank" rel="noopener">MétéoSuisse</a>. Reporter au 31 octobre n'apporte rien : le climat est le même, en un peu plus froid.</p>
+      </div>
+      <div class="callout">
+        <b>À réserver ou à vérifier avant de partir</b>
+        <ul class="clean small">
+          <li><b>Créneau de télécabine obligatoire</b> jusqu'au 8 novembre, sur <a href="https://www.oeschinensee.ch/tarife-sommer/" target="_blank" rel="noopener">oeschinensee.ch</a>. Visez 8 h 30 – 9 h 30, et la place de parking « Premium » à CHF 10.</li>
+          <li><b>Train-autos : billet au guichet uniquement</b>, la vente en ligne est suspendue du 1<sup>er</sup> octobre au 3 novembre 2026. CHF 31 l'aller simple du vendredi au dimanche.</li>
+          <li><b>Vignette suisse 2026</b> : CHF 40, sur <a href="https://www.e-vignette.ch" target="_blank" rel="noopener">e-vignette.ch</a>.</li>
+          <li><b>Éboulement du Spitze Stei</b> : appelez le Ranger au <span class="mono">+41 79 603 28 78</span> la semaine d'avant.</li>
+          <li><b>Pique-nique</b> : les refuges d'Oberbärgli et d'Underbärgli sont fermés.</li>
+          <li><b>Faites le plein en France</b>, c'est moins cher qu'en Suisse.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="rando">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>La randonnée</h2>
+    <p>L'Oeschinensee est un lac de 1 578 m au fond d'un cirque de falaises, au-dessus de Kandersteg. La télécabine monte de Kandersteg à la station haute, à 25 minutes à pied du lac. Pour une vraie rando, faites la boucle panoramique par le Heuberg et Oberbärgli, qui domine le lac.</p>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Profil d'altitude</h3>
+        <p class="small muted">Altitudes des points de passage. Les distances entre eux ne sont pas à l'échelle.</p>
+        <div class="ladder" role="list">
+          <div class="row top" role="listitem"><span class="alt">~1 940 m</span><span class="bar"></span><span><b>Heuberg</b> et sentier haut vers Oberbärgli. Point haut de la boucle : 1 940 à 1 988 m selon les sources</span></div>
+          <div class="row" role="listitem"><span class="alt">~1 680 m</span><span class="bar"></span><span>Station haute de la télécabine (altitude à confirmer)</span></div>
+          <div class="row top" role="listitem"><span class="alt">1 578 m</span><span class="bar"></span><span><b>Oeschinensee</b></span></div>
+          <div class="row" role="listitem"><span class="alt">~1 180 m</span><span class="bar"></span><span>Kandersteg, station inférieure et parking</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Ce qu'il faut savoir</h3>
+        <ul class="clean">
+          <li><b>Télécabine</b> : tous les jours de 8 h 30 à 17 h jusqu'au 8 novembre 2026. Aller-retour CHF 36 par adulte (CHF 18,50 avec un demi-tarif). <b>Dernière descente à 17 h</b> : soyez à la station haute vers 16 h 30.</li>
+          <li><b>Boucle panoramique</b> : station haute → Läger → Heuberg → Oberbärgli → Underbärgli → lac → station haute. 8,4 à 9 km, 450 à 500 m de dénivelé, 3 h à 3 h 30 de marche. Difficulté moyenne, pied sûr.</li>
+          <li><b>Passages délicats</b> : la descente d'Oberbärgli vers Underbärgli passe par de hautes marches rocheuses équipées de câbles, avec du vide. Déconseillée aux personnes sujettes au vertige.</li>
+          <li><b>S'il y a de la neige ou du verglas au-dessus de 1 800 m environ</b>, oubliez la boucle : faites station haute → lac → rive → Läger.</li>
+          <li><b>Sans télécabine</b> : environ 1 h 30 de montée depuis Kandersteg, pour environ 450 m de dénivelé. Mais un tronçon piéton au-dessus du Bärentritt est fermé.</li>
+          <li><b>Horaire type</b> : télécabine à 9 h, Heuberg vers 10 h, Oberbärgli vers 11 h, lac vers 12 h 30 pour le pique-nique, station haute vers 15 h 30.</li>
+          <li><b>Baignade</b> : aucune règle trouvée. L'eau est glaciale fin octobre : à éviter. La rive sud-ouest est en zone interdite.</li>
+          <li><b>Urgences</b> : <span class="mono">144</span> (ambulance), <span class="mono">1414</span> (Rega, hélicoptère), <span class="mono">112</span>.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout bad">
+      <b>Éboulement du Spitze Stei</b>
+      <p>Environ 1 500 m³ de roche sont tombés le 8 août 2026, sans blessé. La commune juge les zones fréquentées non menacées. Une zone interdite permanente couvre l'extrémité sud-ouest du lac, fermée depuis 2019. Aucune information datée de septembre ou d'octobre 2026 n'a été trouvée : la situation a pu changer. Appelez le Ranger (<span class="mono">+41 79 603 28 78</span>) avant de partir.</p>
+    </div>
+    <div class="callout">
+      <b>Heure d'hiver dans la nuit du samedi 24 au dimanche 25 octobre, en Suisse aussi.</b>
+      <p>À Kandersteg, le soleil se couche vers 18 h 26 le samedi 24, et vers 17 h 24 le dimanche 25. Dans le cirque, le soleil direct disparaît bien plus tôt.</p>
+    </div>
+    <div class="panel">
+      <h3>Topos et photos</h3>
+      <ul class="clean">
+        <li><a href="https://bls.ch/en/freizeit-und-ferien/ausfluege/oeschinensee-wanderung" target="_blank" rel="noopener">BLS : la rando de l'Oeschinensee</a> (8,4 km, 492 m, 3 h 30)</li>
+        <li><a href="https://adelboden-lenk-kandersteg.ch/en/activities/tour/detail/heuberg-oeschinensee" target="_blank" rel="noopener">Office du tourisme Adelboden-Lenk-Kandersteg : Heuberg – Oeschinensee</a></li>
+        <li><a href="https://swissfamilyfun.com/oeschinensee-panorama-hike/" target="_blank" rel="noopener">Swiss Family Fun : récit de la boucle panoramique</a> et <a href="https://www.voyagedmagazine.com/oeschinensee-hike-guide-panorama-loop/" target="_blank" rel="noopener">Voyaged : guide de la boucle</a></li>
+        <li><a href="https://www.oeschinensee.ch/" target="_blank" rel="noopener">oeschinensee.ch</a> : webcam, état des installations, restaurants</li>
+        <li>Points de vue photo : <a href="https://www.locationscout.net/switzerland/30134-oeschinensee-kandersteg-switzerland" target="_blank" rel="noopener">Locationscout</a></li>
+      </ul>
+      <p class="small muted">Aucun fil Reddit, TikTok ou Instagram exploitable n'a été trouvé.</p>
+    </div>
+  </section>
+
+  <section id="carte">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>La carte</h2>
+    <p>Positions des logements, du train-autos et du lac. Cliquez sur un numéro pour voir le logement correspondant. Il n'y a pas de fond de carte : la page ne peut pas charger d'images externes.</p>
+    <div class="mapbox">
+      <svg id="map" viewBox="0 0 800 560" role="img" aria-label="Carte des logements, du train-autos et du lac"></svg>
+      <div class="maplegend">
+        <span><i class="dot" style="background:var(--gr)"></i>Télécabine, station inférieure</span>
+        <span><i class="dot" style="background:var(--lake);border-radius:2px"></i>Oeschinensee</span>
+        <span><i class="dot" style="background:var(--ink);border-radius:1px"></i>Terminaux du train-autos</span>
+        <span><i class="dot" style="background:var(--card);border:2px solid var(--lake)"></i>Logement (n° = classement)</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="mapbox">
+        <svg id="mapHike" viewBox="0 0 520 420" role="img" aria-label="Points de passage de la boucle panoramique"></svg>
+        <div class="maplegend"><span>Points OpenStreetMap (±20 m), reliés dans l'ordre de la boucle. Le sentier réel fait des lacets : utilisez une trace GPX.</span></div>
+      </div>
+      <div class="panel">
+        <h3>Points GPS</h3>
+        <div class="tablewrap" style="border:0"><table id="poiTable"><thead><tr><th>Point</th><th>Coordonnées</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="meteo">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Météo : y aller le 24 ou reporter ?</h2>
+    <p>Prévisions de l'ensemble ECMWF (50 membres) du 12 octobre, pour le lac à 1 578 m. Températures ramenées à l'altitude du lac. Ce n'est qu'une tendance à 11–13 jours.</p>
+    <div class="wx" id="wx"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Ce que disent les autres modèles</h3>
+        <ul class="clean small">
+          <li><b>GEFS (NOAA)</b>, risque de pluie maximal entre 6 h et 18 h : 15 % vendredi, 17 % samedi, 5 % dimanche.</li>
+          <li><b>ECMWF AIFS</b>, run du 10 octobre : 27 à 29 % sur les trois jours.</li>
+          <li><b>GFS</b> : isotherme 0 °C entre 3 800 et 4 200 m, signe d'air doux en altitude.</li>
+          <li><b>EC46, semaine du 19 au 25 octobre</b> : 7,1 mm de pluie de moins que la normale, 4,8 h de soleil en plus.</li>
+          <li><b>EC46, semaine du 26 octobre au 1<sup>er</sup> novembre</b> : proche de la normale, sans tendance exploitable.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Climatologie 2000–2025 (ERA5)</h3>
+        <div class="tablewrap" style="border:0"><table>
+          <thead><tr><th></th><th class="num">23–25 oct.</th><th class="num">30 oct.–1<sup>er</sup> nov.</th></tr></thead>
+          <tbody>
+            <tr><td>Jours avec plus de 1 mm de pluie</td><td class="num">41 %</td><td class="num">37 %</td></tr>
+            <tr><td>Tmax / Tmin moyennes au lac</td><td class="num">9,0 / 1,2 °C</td><td class="num">8,5 / 0,4 °C</td></tr>
+            <tr><td>Nuit froide, 1 an sur 10 (au lac)</td><td class="num">−3,3 °C</td><td class="num">−4,7 °C</td></tr>
+            <tr><td>Années avec au moins un jour sec sur trois</td><td class="num">88,5 %</td><td class="num">88,5 %</td></tr>
+          </tbody>
+        </table></div>
+        <p class="small muted">Dans près de 9 années sur 10, au moins un des trois jours est sec. Garder le dimanche en repli a donc de la valeur.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="logements">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Logements</h2>
+    <p>Classés par temps d'accès estimé jusqu'à la télécabine, du plus proche au plus loin. Ton Airbnb repéré vers Sierre ou Sion coûte <b>380 € au total</b>. Les autres prix sont des prix « à partir de », sans disponibilité vérifiée pour le 23–25 octobre et hors frais de ménage et taxe de séjour.</p>
+    <div class="callout">
+      <b>Valais ou Kandersteg ?</b>
+      <p>Un logement à Kandersteg évite le train-autos le samedi matin (environ 66 € et 1 h gagnée), et les prix d'appel commencent vers 208 € les 2 nuits. En revanche, le vendredi soir, il faut prendre le train-autos à l'aller, puisque l'on arrive par le Valais. Ou bien passer par Berne, ce qui n'a pas été chiffré ici.</p>
+    </div>
+    <div id="lodges" class="lodges"></div>
+  </section>
+
+  <section id="transport">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Voiture : carburant, péages, vignette, train-autos</h2>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Trajet</h3>
+        <ul class="clean">
+          <li><b>Orléans → Besançon → Pontarlier → Vallorbe → Lausanne → Sion</b> : environ 626 km et 6 h 40 sans pause (A10, A19, A6, A36, puis A9 suisse). La variante par Genève fait environ 688 km.</li>
+          <li><b>Samedi</b> : Sion → Goppenstein (44,7 km) → train-autos (15 min) → Kandersteg → télécabine (environ 2 km). Depuis Sierre, il faut compter 55 à 80 min au total, depuis Sion 65 à 90 min, attente au train comprise.</li>
+          <li><b>Train-autos du Lötschberg</b> : CHF 31 l'aller simple du vendredi au dimanche (CHF 28 du lundi au jeudi), uniquement au guichet en ce moment. L'horaire voitures 2026 n'a pas été trouvé : en 2022–2023, il y avait au moins un départ toutes les 30 min.</li>
+          <li><b>Parking de la télécabine</b> : de 7 h à 21 h, 5 m × 2 m au maximum, souvent plein vers 11 h. Place « Premium » réservée à CHF 10.</li>
+          <li>Change retenu : 1 CHF = 1,0724 € (cours du 2 octobre 2026).</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Tes estimations, vérifiées</h3>
+        <div class="tablewrap" style="border:0"><table>
+          <thead><tr><th>Poste</th><th class="num">Ton estimation</th><th class="num">Recherche</th></tr></thead>
+          <tbody>
+            <tr><td>Péages France A/R</td><td class="num">~100 €</td><td class="num">104,40 €</td></tr>
+            <tr><td>Train-autos A/R</td><td class="num">~60 €</td><td class="num">66,49 €</td></tr>
+            <tr class="hl"><td>Carburant A/R</td><td class="num">~130 €</td><td class="num">~190 €</td></tr>
+            <tr><td>Vignette CH</td><td class="num">–</td><td class="num">42,90 €</td></tr>
+          </tbody>
+        </table></div>
+        <p class="small muted">Le carburant est sous-estimé : l'aller-retour fait environ 1 346 km. Le moyen est calculé pour une citadine essence à 6,5 L/100 et du SP95-E10 français à 2,140 €/L. En Suisse, le diesel coûtait CHF 2,41 et le SP95 CHF 2,10 le litre en septembre (TCS).</p>
+      </div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Poste, aller-retour</th><th class="num">Min</th><th class="num">Moyen</th><th class="num">Max</th><th>Hypothèse</th></tr></thead>
+      <tbody>
+        <tr><td>Carburant</td><td class="num">167,81 €</td><td class="num">189,88 €</td><td class="num">280,50 €</td><td class="small">diesel 5,5 L / citadine essence 6,5 L / SUV 8 L + 10 %</td></tr>
+        <tr><td>Péages France</td><td class="num">103,40 €</td><td class="num">104,40 €</td><td class="num">141,00 €</td><td class="small">Vallorbe ; max par Genève</td></tr>
+        <tr><td>Vignette suisse</td><td class="num">42,90 €</td><td class="num">42,90 €</td><td class="num">42,90 €</td><td class="small">CHF 40, valable toute l'année 2026</td></tr>
+        <tr><td>Train-autos</td><td class="num">0 €</td><td class="num">66,49 €</td><td class="num">66,49 €</td><td class="small">0 € si logement à Kandersteg</td></tr>
+        <tr><td>Parking</td><td class="num">9,65 €</td><td class="num">10,72 €</td><td class="num">25,74 €</td><td class="small">CHF 9 / 10 / 24</td></tr>
+        <tr><td>Télécabine, 4 pers.</td><td class="num">0 €</td><td class="num">154,43 €</td><td class="num">154,43 €</td><td class="small">0 € en montant à pied ; 193,03 € à 5</td></tr>
+        <tr class="hl"><td><b>Sous-total, 4 pers.</b></td><td class="num"><b>323,76 €</b></td><td class="num"><b>568,82 €</b></td><td class="num"><b>711,06 €</b></td><td class="small">à 5 : 323,76 / 607,42 / 749,66 €</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="budget">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Budget du week-end</h2>
+    <p>Logement (2 nuits) + voiture + vignette + train-autos + parking + télécabine. Repas, taxe de séjour, frais de ménage et équipement non compris. Le minimum suppose un logement à Kandersteg et une montée à pied. La moyenne correspond à ton Airbnb du Valais à 380 €. Le maximum suppose Leukerbad à environ 498 € et un SUV.</p>
+    <div>
+      <div class="seg" role="group" aria-label="Nombre de personnes" style="margin-bottom:10px">
+        <button type="button" id="p4" aria-pressed="true">4 personnes</button><button type="button" id="p5" aria-pressed="false">5 personnes</button>
+      </div>
+      <div class="levels" id="levels"></div>
+    </div>
+    <div class="panel">
+      <h3>Calculer votre propre combinaison</h3>
+      <div class="calc">
+        <label for="selLodge">Logement<select id="selLodge"></select></label>
+        <label for="selCar">Voiture<select id="selCar"></select></label>
+        <label for="selUp">Montée au lac<select id="selUp"><option value="gondola">Télécabine aller-retour (CHF 36 / pers.)</option><option value="foot">À pied depuis Kandersteg</option></select></label>
+        <label for="selVig">Vignette<select id="selVig"><option value="buy">À acheter (CHF 40)</option><option value="have">Déjà sur la voiture</option></select></label>
+      </div>
+      <div class="total" id="calcOut"></div>
+      <p class="small muted">Péages France : 104,40 € par Vallorbe. Parking : CHF 10. Le train-autos (66,49 €) est ajouté seulement si le logement est côté Valais.</p>
+    </div>
+  </section>
+
+  <section id="equipement">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Équipement</h2>
+    <div class="panel">
+      <p>Le kit de base suffit ici : chaussures MH500 Mid, veste imperméable, polaire, sac de 20–25 L, eau, frontale. Ajoutez un bonnet et des gants légers pour la pause au lac (environ 9 °C au mieux fin octobre), et des bâtons si vous montez à pied. Pas besoin de doudoune ni de chaînes, sauf neige précoce. La note complète, valable pour les deux randos : <a href="https://claude.ai/code/artifact/c508ac20-4ed3-45ac-9322-89b11e9b9c8c" target="_blank" rel="noopener">Équipement rando polyvalent</a>.</p>
+    </div>
+  </section>
+
+  <section id="sources">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i><i></i></span>Sources et limites</h2>
+    <div class="panel small">
+      <p><b>Comment ce dossier a été fait.</b> Un agent responsable a mené la recherche (rando, logements, transport, météo), puis le coordinateur l'a relue. Les sites web ne pouvaient pas être ouverts depuis l'environnement de recherche : les infos viennent des extraits du moteur de recherche. La météo vient des fichiers publics ECMWF, NOAA et Open-Meteo, et les coordonnées d'OpenStreetMap via Overture Maps.</p>
+      <ul class="clean" id="sourceList"></ul>
+      <p><b>Limites</b> : disponibilité et prix des logements non vérifiés pour ces dates ; tarifs de parking incomplets ; horaire 2026 du train-autos non trouvé ; rien de daté après mi-août sur le Spitze Stei ; prix suisses du carburant de septembre ; ouverture du restaurant du lac à confirmer.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Préparé le 12 octobre 2026. À revoir le mardi 20 ou le mercredi 21 octobre avec la météo à jour.</p>
+    <p>Vous hésitez entre les deux lacs ? <a href="https://claude.ai/artifact/JFz4WgqCuTsTgPBsytSRxL" target="_blank" rel="noopener">Lac Blanc ou Oeschinensee : le comparatif</a>.</p>
+  </footer>
+</main>
+
+<script>
+const CHF = 1.0724;
+const BASE = { lat: 46.49755, lon: 7.68275 };
+const LAKE = { lat: 46.49839, lon: 7.72667 };
+const TERMINALS = [{ name: "Goppenstein", lat: 46.36774, lon: 7.75484 }, { name: "Kandersteg (train-autos)", lat: 46.49295, lon: 7.66934 }];
+const POIS = [
+  { name: "Station haute (télécabine)", alt: "~1 680 m", lat: 46.50206, lon: 7.69700, kind: "start" },
+  { name: "Läger", alt: "", lat: 46.50200, lon: 7.70898, kind: "pt" },
+  { name: "Feiserwald", alt: "", lat: 46.50195, lon: 7.71738, kind: "pt" },
+  { name: "Heuberg", alt: "~1 940 m", lat: 46.50365, lon: 7.72079, kind: "peak" },
+  { name: "Belvédère du sentier haut", alt: "", lat: 46.50696, lon: 7.72641, kind: "pt" },
+  { name: "Oberbärgli", alt: "", lat: 46.50877, lon: 7.73494, kind: "peak" },
+  { name: "Underbärgli", alt: "", lat: 46.50605, lon: 7.73322, kind: "pt" },
+  { name: "Oeschinensee", alt: "1 578 m", lat: 46.49839, lon: 7.72667, kind: "lake" },
+  { name: "Berghotel (rive ouest)", alt: "", lat: 46.49747, lon: 7.71394, kind: "pt" },
+  { name: "Station inférieure (Kandersteg)", alt: "~1 180 m", lat: 46.49755, lon: 7.68275, kind: "alt" }
+];
+const LOOP = [0, 1, 2, 3, 4, 5, 6, 7, 8, 1, 0];
+
+const LODGES = [
+  { name: "Hostel Rendez-vous", commune: "Kandersteg", lat: 46.49755, lon: 7.68318, access: "à pied, moins de 2 min", train: false, prix2n: null, priceTxt: "Prix non trouvé · chambres de 4 lits", url: "https://adelboden-lenk-kandersteg.ch/en/booking/accommodation-detail/detail/hostel-rendez-vous", note: "Au pied de la télécabine." },
+  { name: "Hotel Ermitage, chambre familiale", commune: "Kandersteg", lat: 46.49746, lon: 7.68210, access: "à pied, 2 à 5 min", train: false, prix2n: 400, approx: true, priceTxt: "£175 la nuit vu en septembre, environ 400 € les 2 nuits (conversion approximative)", url: "https://uk.hotels.com/ho3103904864/hotel-ermitage-kandersteg/", note: "Chambre jusqu'à 6 personnes." },
+  { name: "Appartements à Kandersteg (Holidu)", commune: "Kandersteg", lat: 46.49759, lon: 7.67566, access: "2 à 5 min", train: false, prix2n: 242, priceTxt: "Dès 121 €/nuit, par ex. « Lantau » 68 m², 9,4/10", url: "https://www.holidu.de/s/Kandersteg--Kanton-Bern--Schweiz", note: "Page de résultats d'un comparateur, pas une annonce unique." },
+  { name: "Appartements à Kandersteg (HomeToGo)", commune: "Kandersteg", lat: 46.4985, lon: 7.6745, access: "2 à 5 min", train: false, prix2n: 208, prix2nMax: 358, priceTxt: "104 à 179 €/nuit", url: "https://www.hometogo.de/kandersteg/", note: "Le moins cher trouvé. Page de résultats d'un comparateur." },
+  { name: "« Flussklang Bergsicht »", commune: "Kandersteg", lat: 46.4968, lon: 7.6765, access: "2 à 5 min", train: false, prix2n: null, priceTxt: "Prix non trouvé · 4 personnes", url: "https://chalet.myswitzerland.com/holiday-rentals-pt/kandersteg/flussklang-bergsicht-apartment-33a81f05ce75404d8daa7122c72905df/", note: "Appartement de vacances pour 4." },
+  { name: "Airbnb Kandersteg : maisonette (6) et Vintage House (8)", commune: "Kandersteg", lat: 46.4962, lon: 7.6735, access: "2 à 5 min", train: false, prix2n: null, priceTxt: "Prix non trouvé", url: "https://www.airbnb.fr/rooms/43343088", url2: ["Vintage House", "https://www.airbnb.fr/rooms/49529082"], airbnb: true, note: "Deux annonces Airbnb dans le village." },
+  { name: "Appartements à Frutigen", commune: "Frutigen", lat: 46.58742, lon: 7.64444, access: "15 à 20 min", train: false, prix2n: 246, priceTxt: "Dès 123 €/nuit", url: "https://www.hometogo.de/frutigen/", note: "Côté Berne, en aval de Kandersteg." },
+  { name: "Chalet ou loft à Wiler (Lötschental)", commune: "Lötschental", lat: 46.40399, lon: 7.78361, access: "35 à 60 min avec le train-autos", train: true, prix2n: 236, prix2nMax: 284, priceTxt: "Dès 118 à 142 €/nuit", url: "https://www.hometogo.de/loetschental/", note: "À 10 min de Goppenstein, dans une vallée valaisanne très préservée." },
+  { name: "Chalets à Loèche / Susten", commune: "Leuk", lat: 46.31704, lon: 7.63533, access: "45 à 75 min avec le train-autos", train: true, prix2n: 208, priceTxt: "Dès 104 €/nuit", url: "https://www.airbnb.fr/leuk-switzerland/stays/chalets", airbnb: true, note: "Page de recherche Airbnb, pas une annonce unique." },
+  { name: "Ton Airbnb à Sierre", commune: "Sierre", lat: 46.29225, lon: 7.53232, access: "55 à 80 min avec le train-autos", train: true, prix2n: 380, mine: true, priceTxt: "380 € au total, prix que tu as trouvé", url: "https://www.airbnb.fr/rooms/14037265", url2: ["Autre annonce à Sierre (6 pers.)", "https://www.airbnb.fr/rooms/1157204495983008017"], airbnb: true, note: "Sierre → Goppenstein : 29 km, environ 28 min, plus l'attente et la traversée. Les annonces liées ont été trouvées dans la zone : vérifie que c'est bien celle que tu as repérée." },
+  { name: "Holzji", commune: "Brigue-Glis", lat: 46.31635, lon: 7.98795, access: "70 à 95 min avec le train-autos", train: true, prix2n: null, priceTxt: "Dès 112 USD/nuit", url: "https://www.fvrentals.com/property/holzji/BC-7499998", note: "Environ 45 min jusqu'à Goppenstein." },
+  { name: "Ton Airbnb à Sion : « Aux Îles Cosy »", commune: "Sion", lat: 46.23117, lon: 7.35888, access: "65 à 90 min avec le train-autos", train: true, prix2n: 380, mine: true, priceTxt: "380 € au total, prix que tu as trouvé", url: "https://www.airbnb.fr/rooms/1435558508423003227", airbnb: true, note: "2,5 pièces, environ 60 m², parking privé. Sion → Goppenstein : 44,7 km, environ 35 min, sans doute optimiste sur la route du Lötschental." },
+  { name: "« Why Not », à 5 min de Sion", commune: "Salins", lat: 46.21107, lon: 7.35707, access: "70 à 95 min avec le train-autos", train: true, prix2n: null, priceTxt: "Prix non trouvé · 4 personnes, 2 chambres", url: "https://chalet.myswitzerland.com/location-vacances/salins/why-not-a-5-mns-de-sion-332834", note: "Parking et terrasse, pas de salon." },
+  { name: "Appartement 90 m² à Leukerbad", commune: "Leukerbad", lat: 46.37932, lon: 7.62674, access: "55 à 85 min avec le train-autos", train: true, prix2n: 498, priceTxt: "Environ 249 €/nuit", url: "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/leukerbad/r4386", note: "Référence haute du budget. Station thermale." }
+];
+
+const CARS = [
+  { id: "diesel", label: "Voiture perso diesel (5,5 L/100)", fuel: 167.81 },
+  { id: "essence", label: "Voiture perso citadine essence (6,5 L/100)", fuel: 189.88 },
+  { id: "suv", label: "Voiture perso SUV essence (8 L/100)", fuel: 280.50 }
+];
+const TOLLS = 104.40, VIGNETTE = 40 * CHF, TRAIN = 62 * CHF, PARKING = 10 * CHF, GONDOLA_PP = 36 * CHF;
+
+const LEVELS = {
+  4: [["Minimum", 531.76], ["Entre min. et moyenne", 740.29], ["Moyenne", 948.82], ["Entre moyenne et max.", 1078.94], ["Maximum", 1209.06]],
+  5: [["Minimum", 531.76], ["Entre min. et moyenne", 759.59], ["Moyenne", 987.42], ["Entre moyenne et max.", 1117.54], ["Maximum", 1247.66]]
+};
+
+const WX = [
+  { d: "Ven. 23", p1: 14, p5: 8, tmax: 11.6, tmin: 5.0, note: "HRES : sec" },
+  { d: "Sam. 24", p1: 14, p5: 6, tmax: 10.0, tmin: 4.2, note: "HRES : sec · Tmax 5,9 à 14,2 °C (P10–P90)" },
+  { d: "Dim. 25", p1: 22, p5: 14, tmax: 9.5, tmin: 3.8, note: "HRES : sec · queue pluie/neige plus épaisse" }
+];
+
+const SOURCES = [
+  ["oeschinensee.ch : tarifs et horaires de la télécabine", "https://www.oeschinensee.ch/tarife-sommer/"],
+  ["oeschinensee.ch : accès et parking", "https://www.oeschinensee.ch/anreise/"],
+  ["oeschinensee.ch : Ranger", "https://www.oeschinensee.ch/ranger/"],
+  ["BLS : train-autos du Lötschberg, prix et billets", "https://www.bls.ch/de/fahren/autoverlad"],
+  ["BLS : rando de l'Oeschinensee", "https://bls.ch/en/freizeit-und-ferien/ausfluege/oeschinensee-wanderung"],
+  ["e-vignette suisse (OFDF)", "https://www.e-vignette.ch"],
+  ["Distance et péages vers Pontarlier", "https://distanceenvoiture.fr/fr/itineraire/Orl%C3%A9ans/Pontarlier"],
+  ["Prix des carburants en France au 07/10/2026", "https://prix-carburant.eu/article/prix-carburants-2026-10-07"],
+  ["Cours CHF/EUR au 02/10/2026", "https://www.exchange-rates.org/exchange-rate-history/chf-eur-2026-10-02"],
+  ["ECMWF open data (prévisions d'ensemble)", "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/index.html"],
+  ["Rega", "https://www.rega.ch"]
+];
+
+const fmt = (n, d = 0) => n.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const eur = n => fmt(Math.round(n)) + " €";
+const gmaps = (lat, lon) => `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+const el = (tag, attrs = {}, html = "") => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); e.innerHTML = html; return e; };
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs = {}) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+function drawMap(svg, points, opts) {
+  const W = opts.w, H = opts.h, pad = opts.pad;
+  const lats = points.map(p => p.lat), lons = points.map(p => p.lon);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+  const spanX = (maxLon - minLon) * k, spanY = maxLat - minLat;
+  const s = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+  const offX = (W - spanX * s) / 2, offY = (H - spanY * s) / 2;
+  const P = (lat, lon) => [offX + (lon - minLon) * k * s, offY + (maxLat - lat) * s];
+  const step = opts.grid;
+  const g = sv("g", { stroke: "var(--line)", "stroke-width": 1 });
+  for (let la = Math.ceil(minLat / step) * step; la <= maxLat + 1e-9; la += step) { const [, y] = P(la, minLon); if (y > 0 && y < H) { g.append(sv("line", { x1: 0, x2: W, y1: y, y2: y })); const t = sv("text", { x: 6, y: y - 4, fill: "var(--muted)", "font-size": 10 }); t.textContent = la.toFixed(2) + "° N"; g.append(t); } }
+  for (let lo = Math.ceil(minLon / step) * step; lo <= maxLon + 1e-9; lo += step) { const [x] = P(minLat, lo); if (x > 0 && x < W) { g.append(sv("line", { x1: x, x2: x, y1: 0, y2: H })); const t = sv("text", { x: x + 4, y: H - 6, fill: "var(--muted)", "font-size": 10 }); t.textContent = lo.toFixed(2) + "° E"; g.append(t); } }
+  svg.append(sv("rect", { x: 0, y: 0, width: W, height: H, fill: "var(--card)" }), g);
+  const km = opts.scaleKm, px = km / 111.32 * s;
+  const sb = sv("g", { transform: `translate(${W - px - 24},${24})` });
+  sb.append(sv("rect", { x: 0, y: 0, width: px, height: 5, fill: "var(--ink)" }));
+  const st = sv("text", { x: px / 2, y: 20, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)" }); st.textContent = km + " km"; sb.append(st);
+  svg.append(sb);
+  const n = sv("text", { x: W - 24, y: 58, "text-anchor": "end", "font-size": 12, "font-weight": 600, fill: "var(--muted)" }); n.textContent = "N ↑"; svg.append(n);
+  return P;
+}
+function label(svg, x, y, txt, color, weight, anchor) {
+  const t = sv("text", { x, y, "font-size": 12, fill: color, "font-weight": weight || 400, "text-anchor": anchor || "start" }); t.textContent = txt; svg.append(t);
+}
+
+function renderMap() {
+  const svg = document.getElementById("map");
+  const pts = LODGES.map(l => ({ lat: l.lat, lon: l.lon })).concat([BASE, LAKE], TERMINALS);
+  const P = drawMap(svg, pts, { w: 800, h: 560, pad: 50, grid: 0.1, scaleKm: 10 });
+  const [g1x, g1y] = P(TERMINALS[0].lat, TERMINALS[0].lon), [g2x, g2y] = P(TERMINALS[1].lat, TERMINALS[1].lon);
+  svg.append(sv("line", { x1: g1x, y1: g1y, x2: g2x, y2: g2y, stroke: "var(--ink)", "stroke-width": 2, "stroke-dasharray": "2 4" }));
+  label(svg, (g1x + g2x) / 2 + 10, (g1y + g2y) / 2, "tunnel du Lötschberg (train-autos, 15 min)", "var(--muted)", 400);
+  TERMINALS.forEach(t => { const [x, y] = P(t.lat, t.lon); svg.append(sv("rect", { x: x - 5, y: y - 5, width: 10, height: 10, fill: "var(--ink)" })); });
+  label(svg, g1x + 10, g1y + 16, "Goppenstein", "var(--ink)", 600);
+  const [lx, ly] = P(LAKE.lat, LAKE.lon), [bx, by] = P(BASE.lat, BASE.lon);
+  svg.append(sv("rect", { x: lx - 7, y: ly - 7, width: 14, height: 14, rx: 3, fill: "var(--lake)" }));
+  label(svg, lx + 11, ly + 4, "Oeschinensee", "var(--lake)", 600);
+  svg.append(sv("circle", { cx: bx, cy: by, r: 7, fill: "var(--gr)", stroke: "var(--card)", "stroke-width": 2 }));
+  const pos = LODGES.map(l => P(l.lat, l.lon));
+  const done = new Set();
+  pos.forEach((p, i) => {
+    if (done.has(i)) return;
+    const grp = pos.map((q, j) => j).filter(j => Math.hypot(pos[j][0] - p[0], pos[j][1] - p[1]) < 20);
+    grp.forEach(j => done.add(j));
+    if (grp.length > 1) {
+      const cx = grp.reduce((a, j) => a + pos[j][0], 0) / grp.length, cy = grp.reduce((a, j) => a + pos[j][1], 0) / grp.length;
+      const r = 10 + 4 * grp.length;
+      grp.forEach((j, n) => { const a = Math.PI / 2 + (n + 0.5) * Math.PI / grp.length; pos[j] = [cx - 6 + r * 1.3 * Math.cos(a), cy + r * 1.3 * Math.sin(a)]; });
+    }
+  });
+  LODGES.map((l, i) => [l, i]).reverse().forEach(([l, i]) => {
+    const [x, y] = pos[i];
+    const g = sv("g", { class: "mk", tabindex: 0, role: "button", "aria-label": `Logement ${i + 1} : ${l.name}` });
+    g.append(sv("circle", { cx: x, cy: y, r: 11, fill: l.mine ? "var(--lake-soft)" : "var(--card)", stroke: "var(--lake)", "stroke-width": 2 }));
+    const t = sv("text", { x, y: y + 4, "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "var(--ink)" }); t.textContent = i + 1; g.append(t);
+    const go = () => focusLodge(i);
+    g.addEventListener("click", go); g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+    svg.append(g);
+  });
+  [["Kandersteg", 46.4975, 7.6800, -46, 2], ["Sion", 46.23117, 7.35888, 16, 4], ["Sierre", 46.29225, 7.53232, 16, 4], ["Frutigen", 46.58742, 7.64444, 16, 4], ["Leukerbad", 46.37932, 7.62674, 16, 4], ["Brigue", 46.31635, 7.98795, -16, 4], ["Wiler", 46.40399, 7.78361, 16, 4]].forEach(([n, la, lo, dx, dy]) => { const [x, y] = P(la, lo); label(svg, x + dx, y + dy, n, "var(--muted)", 500, dx < 0 ? "end" : "start"); });
+}
+
+function renderHikeMap() {
+  const svg = document.getElementById("mapHike");
+  const P = drawMap(svg, POIS, { w: 520, h: 420, pad: 50, grid: 0.01, scaleKm: 1 });
+  const d = LOOP.map((i, n) => { const [x, y] = P(POIS[i].lat, POIS[i].lon); return (n ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }).join(" ");
+  svg.append(sv("path", { d, fill: "none", stroke: "var(--gr)", "stroke-width": 2.5, "stroke-dasharray": "6 5" }));
+  const [sx, sy] = P(POIS[9].lat, POIS[9].lon), [tx, ty] = P(POIS[0].lat, POIS[0].lon);
+  svg.append(sv("line", { x1: sx, y1: sy, x2: tx, y2: ty, stroke: "var(--muted)", "stroke-width": 1.5, "stroke-dasharray": "2 3" }));
+  POIS.forEach((p, i) => {
+    const [x, y] = P(p.lat, p.lon);
+    const color = p.kind === "start" ? "var(--gr)" : p.kind === "lake" ? "var(--lake)" : p.kind === "peak" ? "var(--ink)" : "var(--muted)";
+    if (p.kind === "peak") svg.append(sv("path", { d: `M${x} ${y - 8} L${x + 7} ${y + 5} L${x - 7} ${y + 5} Z`, fill: color }));
+    else svg.append(sv("circle", { cx: x, cy: y, r: p.kind === "start" || p.kind === "lake" ? 7 : 4.5, fill: color, stroke: "var(--card)", "stroke-width": 2 }));
+    const below = ["Oeschinensee", "Berghotel (rive ouest)", "Station inférieure (Kandersteg)", "Underbärgli"].includes(p.name);
+    const t = sv("text", { x, y: below ? y + 20 : y - 12, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)", "font-weight": p.kind === "lake" || p.kind === "start" ? 600 : 400 });
+    t.textContent = p.name.replace(/ \(.*\)/, ""); svg.append(t);
+  });
+  const tb = document.querySelector("#poiTable tbody");
+  POIS.forEach(p => tb.append(el("tr", {}, `<td>${p.name}${p.alt ? `<br><span class="small muted">${p.alt}</span>` : ""}</td><td class="mono small">${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</td><td class="small"><a href="${gmaps(p.lat, p.lon)}" target="_blank" rel="noopener">Maps</a></td>`)));
+}
+
+function renderLodges() {
+  const box = document.getElementById("lodges");
+  LODGES.forEach((l, i) => {
+    const c = el("article", { class: "lodge", id: "lg" + i });
+    const priced = l.prix2n != null;
+    const priceHtml = priced ? `<b>${l.approx ? "≈ " : ""}${l.prix2nMax ? eur(l.prix2n) + " – " + eur(l.prix2nMax) : eur(l.prix2n)}</b><br><span class="small muted">2 nuits, groupe</span>${l.mine ? `<br><span class="pill ok">ton repérage</span>` : ""}` : `<span class="pill warn">prix à demander</span>`;
+    c.innerHTML = `<span class="n">${i + 1}</span>
+      <div style="min-width:0"><h3>${l.name}</h3><div class="meta"><span>${l.commune}</span><span>${l.access}</span>${l.train ? `<span class="pill info">train-autos</span>` : ""}</div></div>
+      <div class="price">${priceHtml}</div>
+      <div class="body"><p>${l.note}</p><p class="small muted">${l.priceTxt}</p>
+        <div class="links"><a href="${l.url}" target="_blank" rel="noopener">Voir l'annonce</a>${l.url2 ? `<a href="${l.url2[1]}" target="_blank" rel="noopener">${l.url2[0]}</a>` : ""}<a href="${gmaps(l.lat, l.lon)}" target="_blank" rel="noopener">Google Maps</a></div></div>`;
+    box.append(c);
+  });
+}
+function focusLodge(i) {
+  document.querySelectorAll(".lodge.active").forEach(e => e.classList.remove("active"));
+  const c = document.getElementById("lg" + i); c.classList.add("active"); c.scrollIntoView({ block: "center" });
+}
+
+function renderWx() {
+  const box = document.getElementById("wx");
+  WX.forEach(w => box.append(el("div", { class: "d" }, `<span class="eyebrow">${w.d} octobre</span><b>${fmt(w.tmax, 1)} / ${fmt(w.tmin, 1)} °C</b><span class="small muted">max / min au lac (médiane)</span>
+    <span class="small">Pluie &gt; 1 mm : <b>${w.p1} %</b> · &gt; 5 mm : ${w.p5} %</span><div class="meter" aria-hidden="true"><i style="width:${w.p1}%"></i></div><span class="small muted">${w.note}</span>`)));
+}
+
+let people = 4;
+function renderLevels() {
+  const box = document.getElementById("levels"); box.innerHTML = "";
+  LEVELS[people].forEach(([t, v], i) => box.append(el("div", { class: i === 2 ? "mid" : "" }, `<span class="eyebrow">${t}</span><b>${eur(v / people)}</b><span class="small muted">par pers. · ${eur(v)} au total</span>`)));
+}
+function renderCalc() {
+  const sL = document.getElementById("selLodge"), sC = document.getElementById("selCar");
+  if (!sL.options.length) {
+    LODGES.forEach((l, i) => { if (l.prix2n != null) { sL.append(new Option(`n° ${i + 1} · ${l.name} (${eur(l.prix2n)})`, i + ":lo")); if (l.prix2nMax) sL.append(new Option(`n° ${i + 1} · ${l.name}, haut de fourchette (${eur(l.prix2nMax)})`, i + ":hi")); } });
+    CARS.forEach(c => sC.append(new Option(c.label, c.id)));
+    sL.value = "9:lo"; sC.value = "essence";
+    ["selLodge", "selCar", "selUp", "selVig"].forEach(id => document.getElementById(id).addEventListener("change", renderCalc));
+  }
+  const [li, side] = sL.value.split(":"); const l = LODGES[+li];
+  const lodge = side === "hi" ? l.prix2nMax : l.prix2n;
+  const car = CARS.find(c => c.id === sC.value).fuel + TOLLS;
+  const vig = document.getElementById("selVig").value === "buy" ? VIGNETTE : 0;
+  const train = l.train ? TRAIN : 0;
+  const up = document.getElementById("selUp").value === "gondola" ? GONDOLA_PP * people : 0;
+  const tot = lodge + car + vig + train + PARKING + up;
+  document.getElementById("calcOut").innerHTML = `<div><span class="eyebrow">Par personne (${people})</span><br><b>${eur(tot / people)}</b></div><div><span class="eyebrow">Total groupe</span><br><b>${eur(tot)}</b></div><div class="small muted">Logement ${eur(lodge)} · voiture ${eur(car)} · vignette ${eur(vig)} · train-autos ${eur(train)} · parking ${eur(PARKING)} · télécabine ${eur(up)}</div>`;
+}
+function setPeople(n) { people = n; document.getElementById("p4").setAttribute("aria-pressed", n === 4); document.getElementById("p5").setAttribute("aria-pressed", n === 5); renderLevels(); renderCalc(); }
+document.getElementById("p4").addEventListener("click", () => setPeople(4));
+document.getElementById("p5").addEventListener("click", () => setPeople(5));
+
+function renderSources() { const ul = document.getElementById("sourceList"); SOURCES.forEach(([t, u]) => ul.append(el("li", {}, `<a href="${u}" target="_blank" rel="noopener">${t}</a>`))); }
+
+renderMap(); renderHikeMap(); renderLodges(); renderWx(); renderLevels(); renderCalc(); renderSources();
+</script>

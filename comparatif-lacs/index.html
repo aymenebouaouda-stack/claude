@@ -1,0 +1,372 @@
+<title>Lac Blanc ou Oeschinensee ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : la même fiche topo que les deux dossiers ; A en rouge balisage, B en bleu glacier, sur toute la page. */
+:root {
+  --bg: #f3f6f5;
+  --card: #ffffff;
+  --ink: #16201f;
+  --muted: #586664;
+  --line: #d3dcda;
+  --lake: #23727a;
+  --lake-soft: #dcecec;
+  --gr: #c22f28;
+  --warn: #9a6212;
+  --warn-soft: #f7ecd9;
+  --ok: #2c7349;
+  --ok-soft: #dff0e5;
+  --bad: #a3322c;
+  --bad-soft: #f6e0de;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+    --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+    --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1514; --card: #151e1d; --ink: #e5eeec; --muted: #9caaa7; --line: #283433;
+  --lake: #63b6bd; --lake-soft: #16302f; --gr: #e5544c;
+  --warn: #e0a64a; --warn-soft: #33270f; --ok: #6cc28d; --ok-soft: #12291b; --bad: #ee7b72; --bad-soft: #351a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15.5px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 64px; }
+a { color: var(--lake); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--gr); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.6rem); font-weight: 800; font-stretch: 78%; line-height: 1; letter-spacing: -0.01em; }
+h2 { font-size: 1.7rem; font-weight: 750; font-stretch: 85%; display: flex; align-items: center; gap: 12px; }
+h3 { font-size: 1.12rem; font-weight: 700; font-stretch: 92%; }
+p { margin: 0; max-width: 68ch; }
+.mono { font-family: var(--mono); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 0.86rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* Balisage GR : blanc au-dessus, rouge en dessous */
+.gr { display: inline-flex; flex-direction: column; width: 26px; flex: none; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.gr i { display: block; height: 7px; }
+.gr i:first-child { background: #ffffff; }
+.gr i:last-child { background: var(--gr); }
+
+header.hero { padding-block: 40px 28px; display: grid; gap: 18px; }
+.hero .lead { font-size: 1.08rem; max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.facts div { padding: 12px 14px 12px 0; display: grid; gap: 2px; }
+.facts b { font-family: var(--display); font-stretch: 80%; font-size: 1.5rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+nav.toc .in { max-width: 1080px; margin: 0 auto; padding-inline: 20px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.toc a { white-space: nowrap; padding: 10px 10px; font-size: 0.88rem; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+nav.toc a:hover { border-bottom-color: var(--gr); }
+
+section { padding-block: 44px 8px; display: grid; gap: 18px; scroll-margin-top: 48px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid2 > * { min-width: 0; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.callout { border-left: 4px solid var(--warn); background: var(--warn-soft); padding: 12px 16px; border-radius: 0 6px 6px 0; display: grid; gap: 6px; }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.callout.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+ul.clean { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+
+.pill { display: inline-block; font-family: var(--mono); font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); } .pill.info { color: var(--lake); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; background: var(--bg); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr.hl td { background: var(--lake-soft); }
+
+/* Carte */
+.mapbox { background: var(--card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+.maplegend { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--muted); }
+.maplegend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+svg text { font-family: var(--body); }
+.mk { cursor: pointer; }
+.mk:focus { outline: none; }
+.mk:focus circle, .mk:hover circle { stroke: var(--gr); stroke-width: 3; }
+
+/* Logements */
+.lodges { display: grid; gap: 10px; }
+.lodge { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 14px; align-items: start; }
+.lodge.active { border-color: var(--gr); box-shadow: 0 0 0 1px var(--gr); }
+.lodge .n { font-family: var(--display); font-stretch: 80%; font-weight: 800; font-size: 1.25rem; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--lake); color: var(--card); grid-row: span 2; }
+.lodge .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.86rem; color: var(--muted); }
+.lodge .price { text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
+.lodge .price b { font-family: var(--display); font-stretch: 85%; font-size: 1.15rem; }
+.lodge .body { grid-column: 2 / -1; display: grid; gap: 6px; font-size: 0.9rem; min-width: 0; }
+.lodge .links { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; }
+@media (max-width: 560px) { .lodge { grid-template-columns: 34px 1fr; } .lodge .price { grid-column: 2; text-align: left; } }
+
+/* Altitude */
+.ladder { display: grid; gap: 0; }
+.ladder .row { display: grid; grid-template-columns: 70px 16px 1fr; align-items: center; gap: 10px; min-height: 38px; }
+.ladder .alt { font-family: var(--mono); font-size: 0.85rem; text-align: right; color: var(--muted); }
+.ladder .bar { width: 4px; height: 100%; min-height: 38px; background: var(--lake); justify-self: center; position: relative; }
+.ladder .bar::after { content: ""; position: absolute; left: -5px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--card); border: 3px solid var(--lake); }
+.ladder .row.top .bar::after { border-color: var(--gr); }
+
+/* Calculateur */
+.calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.calc label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+.calc select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button { font: inherit; background: var(--card); color: var(--ink); border: 0; padding: 8px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.total { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; border-top: 2px solid var(--ink); padding-top: 12px; }
+.total b { font-family: var(--display); font-stretch: 80%; font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Barre de budget 5 niveaux */
+.levels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.levels div { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 10px; display: grid; gap: 2px; min-width: 0; }
+.levels div.mid { border-color: var(--lake); box-shadow: inset 0 3px 0 var(--lake); }
+.levels b { font-family: var(--display); font-stretch: 82%; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .levels { grid-template-columns: 1fr 1fr; } .levels div.mid { grid-column: span 2; } }
+
+/* Météo */
+.wx { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.wx .d { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 4px; }
+.wx .d b { font-family: var(--display); font-stretch: 85%; font-size: 1.1rem; }
+.meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--lake); }
+
+.hikes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.hike { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.hike .stats { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+
+footer { padding-block: 40px 0; font-size: 0.85rem; color: var(--muted); display: grid; gap: 8px; }
+.copybtn { font: inherit; font-size: 0.82rem; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+:root { --cA: #c22f28; --cB: #00829c; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cA: #e5544c; --cB: #22a6b5; } }
+:root[data-theme="dark"] { --cA: #e5544c; --cB: #22a6b5; }
+.vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.opt { display: grid; gap: 4px; padding: 16px 18px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); text-decoration: none; color: var(--ink); border-top: 4px solid var(--cA); }
+.opt.oe { border-top-color: var(--cB); }
+.opt b { font-family: var(--display); font-stretch: 82%; font-size: 1.45rem; font-weight: 800; }
+.opt:hover { border-color: var(--ink); }
+.scoreline { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.scoreline div { padding: 12px 14px 12px 0; display: grid; gap: 2px; }
+.scoreline b { font-family: var(--display); font-stretch: 82%; font-size: 1.3rem; font-weight: 800; }
+.tA { color: var(--cA); } .tB { color: var(--cB); }
+.pill.pA { color: var(--cA); } .pill.pB { color: var(--cB); }
+.chartwrap { position: relative; overflow-x: auto; }
+.chartwrap svg { display: block; width: 100%; min-width: 520px; height: auto; }
+.tip { position: absolute; width: 240px; background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; font-size: 0.82rem; box-shadow: 0 4px 14px rgba(0,0,0,.12); pointer-events: none; }
+.side-a { border-top: 4px solid var(--cA); } .side-b { border-top: 4px solid var(--cB); }
+table.crit td:nth-child(2), table.crit td:nth-child(3) { min-width: 220px; }
+</style>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Week-end du 23 au 25 octobre 2026 · 4 à 5 personnes · départ d'Orléans</div>
+    <h1>Lac Blanc ou Oeschinensee ?</h1>
+    <p class="lead">Les deux options du week-end, comparées sur le même périmètre : prix, route, logistique, difficulté, risques et météo. Ce comparatif a été préparé le 12 octobre 2026 par l'agent chef, à partir des deux dossiers et de la note équipement.</p>
+    <div class="vs">
+      <a class="opt bel" href="https://claude.ai/artifact/7aK1eDLYfxMZZdQx7jv3Qu" target="_blank" rel="noopener"><span class="eyebrow">Option A · Isère</span><b>Lac Blanc de Belledonne</b><span class="small">~2 170 m · ~12 km · ~1 000 m D+ · 6–7 h</span><span class="small">Ouvrir la fiche →</span></a>
+      <a class="opt oe" href="https://claude.ai/artifact/7rP8LahXMUGLbAPvvrTsSd" target="_blank" rel="noopener"><span class="eyebrow">Option B · Suisse</span><b>Oeschinensee</b><span class="small">1 578 m · 8,4–9 km · 450–500 m D+ · 3–3 h 30</span><span class="small">Ouvrir la fiche →</span></a>
+    </div>
+  </header>
+</div>
+
+<nav class="toc" aria-label="Sommaire"><div class="in">
+  <a href="#verdict">Verdict</a><a href="#budget">Budget</a><a href="#criteres">Critère par critère</a><a href="#pourcontre">Pour et contre</a><a href="#penibilite">Pénibilité</a><a href="#methode">Méthode</a>
+</div></nav>
+
+<main class="wrap">
+  <section id="verdict">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Le verdict</h2>
+    <div class="grid2">
+      <div class="callout ok">
+        <b>Pour ce groupe et ce week-end : l'Oeschinensee</b>
+        <p>La rando est à votre niveau : 450 à 500 m de dénivelé en 3 h à 3 h 30. Si le haut est enneigé, la télécabine vous laisse à 25 minutes d'une balade facile au bord du lac. La météo prévue est aussi un peu meilleure le samedi 24 : 14 % de risque de pluie, contre 24 % à Belledonne. Elle coûte en revanche environ 92 € de plus par personne à 4.</p>
+      </div>
+      <div class="callout">
+        <b>Choisissez le Lac Blanc si…</b>
+        <ul class="clean small">
+          <li>le budget compte avant tout : environ 148 € par personne à 4, contre 240 € ;</li>
+          <li>tout le groupe tient 1 000 m de montée sur 6 à 7 h, avec des passages câblés ;</li>
+          <li>la météo du mercredi 21 octobre est sèche, sans neige au-dessus de 1 800 m environ.</li>
+        </ul>
+        <p class="small">Gardez alors le Lac du Crozet comme plan B : 9,3 km, 684 m de dénivelé, sans câble.</p>
+      </div>
+    </div>
+    <div class="scoreline">
+      <div><span class="eyebrow">Le moins cher</span><b class="tA">Lac Blanc</b><span class="small muted">−92 € par pers. à 4 en moyenne</span></div>
+      <div><span class="eyebrow">Logistique la plus simple</span><b class="tA">Lac Blanc</b><span class="small muted">2 ruptures contre 6 · ~2 h de voiture en moins</span></div>
+      <div><span class="eyebrow">Rando la plus accessible</span><b class="tB">Oeschinensee</b><span class="small muted">moitié moins de dénivelé, repli en télécabine</span></div>
+      <div><span class="eyebrow">Pénibilité globale (sur 45)</span><b class="tB">26 contre 29</b><span class="small muted">plus bas = mieux · égalité si la logistique compte double</span></div>
+    </div>
+  </section>
+
+  <section id="budget">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Combien coûte chaque option</h2>
+    <p>Même périmètre pour les deux : logement 2 nuits, carburant, péages, vignette, train-autos, parking, remontée. Repas, taxe de séjour et équipement exclus. Le point est le scénario moyen, le trait va du minimum au maximum.</p>
+    <div class="panel">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center">
+        <h3>Budget par personne</h3>
+        <div class="seg" role="group" aria-label="Nombre de personnes"><button type="button" id="p4" aria-pressed="true">4 personnes</button><button type="button" id="p5" aria-pressed="false">5 personnes</button></div>
+      </div>
+      <div class="chartwrap"><svg id="chart" viewBox="0 0 760 200" role="img" aria-label="Budget par personne, minimum, moyenne et maximum, pour les deux options"></svg><div id="tip" class="tip" hidden></div></div>
+      <div class="maplegend" style="border:0;padding:0"><span><i class="dot" style="background:var(--cA)"></i>Lac Blanc de Belledonne</span><span><i class="dot" style="background:var(--cB)"></i>Oeschinensee (logement Valais à 380 €)</span></div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Poste (€, groupe)</th><th class="num">A min</th><th class="num">A moy</th><th class="num">A max</th><th class="num">B min</th><th class="num">B moy</th><th class="num">B max</th></tr></thead>
+      <tbody>
+        <tr><td>Logement 2 nuits</td><td class="num">144</td><td class="num">287</td><td class="num">430</td><td class="num">380</td><td class="num">380</td><td class="num">380</td></tr>
+        <tr><td>Carburant aller-retour</td><td class="num">155</td><td class="num">183</td><td class="num">257</td><td class="num">168</td><td class="num">199</td><td class="num">295</td></tr>
+        <tr><td>Péages France</td><td class="num">114</td><td class="num">122</td><td class="num">149</td><td class="num">103</td><td class="num">104</td><td class="num">141</td></tr>
+        <tr><td>Vignette suisse</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">43</td><td class="num">43</td><td class="num">43</td></tr>
+        <tr><td>Train-autos du Lötschberg</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">66</td><td class="num">66</td><td class="num">66</td></tr>
+        <tr><td>Parking</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">10</td><td class="num">11</td><td class="num">26</td></tr>
+        <tr><td>Télécabine (4 pers. / 5 pers.)</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num" colspan="3" style="text-align:center">154 / 193</td></tr>
+        <tr class="hl"><td><b>Total, groupe de 4</b></td><td class="num"><b>412</b></td><td class="num"><b>591</b></td><td class="num"><b>836</b></td><td class="num"><b>925</b></td><td class="num"><b>958</b></td><td class="num"><b>1 105</b></td></tr>
+        <tr class="hl"><td><b>Total, groupe de 5</b></td><td class="num"><b>412</b></td><td class="num"><b>591</b></td><td class="num"><b>836</b></td><td class="num"><b>963</b></td><td class="num"><b>997</b></td><td class="num"><b>1 144</b></td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid2">
+      <div class="callout">
+        <b>Le matériel froid réduit l'écart</b>
+        <p>Belledonne fin octobre demande un bonnet, des gants et une doudoune : 61 à 97 € par personne. Si tout le groupe doit l'acheter, l'écart moyen tombe à environ 13 € par personne à 4, et 2 € à 5. Avec le matériel haut de gamme, Belledonne devient même plus chère. Ce matériel reste à vous après le week-end.</p>
+      </div>
+      <div class="callout ok">
+        <b>Variante : dormir à Kandersteg</b>
+        <p>Avec un logement à Kandersteg (prix d'appel de 208 à 358 € les 2 nuits), on supprime le train-autos du samedi et on gagne 2 à 3 h de route. L'Oeschinensee revient alors à 686, 795 ou 1 017 € pour 4 personnes (min, moyen, max). Aucun de ces prix n'est vérifié pour ces dates.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="criteres">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Critère par critère</h2>
+    <div class="tablewrap"><table class="crit">
+      <thead><tr><th>Critère</th><th>A · Lac Blanc de Belledonne</th><th>B · Oeschinensee</th><th>Avantage</th></tr></thead>
+      <tbody id="critBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="pourcontre">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Pour et contre</h2>
+    <div class="grid2">
+      <div class="panel side-a"><h3>A · Lac Blanc de Belledonne</h3><p class="eyebrow">Pour</p><ul class="clean small" id="proA"></ul><p class="eyebrow">Contre</p><ul class="clean small" id="conA"></ul></div>
+      <div class="panel side-b"><h3>B · Oeschinensee</h3><p class="eyebrow">Pour</p><ul class="clean small" id="proB"></ul><p class="eyebrow">Contre</p><ul class="clean small" id="conB"></ul></div>
+    </div>
+  </section>
+
+  <section id="penibilite">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Score de pénibilité</h2>
+    <p>Chaque critère est noté de 1 (facile) à 5 (très pénible), puis les notes sont additionnées sans pondération, pour un maximum de 45. Plus le score est bas, mieux c'est. Belledonne est plus pénible sur la rando, les risques et la météo ; l'Oeschinensee sur la route et la logistique.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Critère</th><th>Barème</th><th class="num">A</th><th class="num">B</th></tr></thead>
+      <tbody id="scoreBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="methode">
+    <h2><span class="gr" aria-hidden="true"><i></i><i></i></span>Méthode et limites</h2>
+    <div class="panel small">
+      <p><b>Ce que l'agent chef a harmonisé entre les deux dossiers</b></p>
+      <ul class="clean">
+        <li>Le minimum publié pour l'Oeschinensee (532 €) supposait un logement à Kandersteg et une montée à pied. Pour comparer à l'identique, le comparatif garde ton Airbnb à 380 €, la télécabine et le train-autos dans tous les scénarios. C'est pour cela que le moyen passe ici à 958 € au lieu de 949 € sur la fiche Oeschinensee.</li>
+        <li>Les +5 % de carburant « montagne » appliqués à Belledonne ont aussi été appliqués à l'Oeschinensee.</li>
+        <li>Les températures des deux dossiers ne se comparent pas directement, car les points des modèles ne sont pas à la même altitude. Le comparatif s'appuie donc sur les probabilités de pluie.</li>
+        <li>Pour Belledonne, ce sont les corrections de la vérification croisée qui ont été retenues : distance, dénivelé, hôtel probablement fermé.</li>
+      </ul>
+      <p><b>Limites communes</b> : aucun prix de logement n'est vérifié pour ces dates. Les prévisions à 12 jours ne donnent qu'une tendance. Rien n'a été trouvé de daté après mi-août sur l'éboulement du Spitze Stei. Les deux fiches détaillées donnent toutes les sources.</p>
+      <p><a href="https://claude.ai/artifact/7aK1eDLYfxMZZdQx7jv3Qu" target="_blank" rel="noopener">Fiche Lac Blanc</a> · <a href="https://claude.ai/artifact/7rP8LahXMUGLbAPvvrTsSd" target="_blank" rel="noopener">Fiche Oeschinensee</a> · <a href="https://claude.ai/code/artifact/c508ac20-4ed3-45ac-9322-89b11e9b9c8c" target="_blank" rel="noopener">Équipement rando polyvalent</a></p>
+    </div>
+  </section>
+  <footer><p>Préparé le 12 octobre 2026. À revoir le mercredi 21 octobre avec la météo à jour.</p></footer>
+</main>
+
+<script>
+const BUDGET = {
+  4: { A: [412.40, 591.37, 836.06], B: [924.67, 958.31, 1105.07] },
+  5: { A: [412.40, 591.37, 836.06], B: [963.28, 996.91, 1143.68] }
+};
+const CRIT = [
+  ["Voiture sur le week-end", "~6 h–6 h 30 l'aller, 35 à 50 min de route chaque sens le samedi. Total ~13 h 10 à 14 h 40", "~6 h 40 l'aller jusqu'à Sion, 65 à 90 min chaque sens le samedi (route + train-autos). Total ~15 h 30 à 16 h 20", "A"],
+  ["Kilomètres", "~1 250 km", "~1 346 km", "A"],
+  ["Ruptures logistiques", "2 : piste en terre de 2 km, accès à confirmer en mairie", "6 : frontière, vignette, train-autos au guichet, créneau de télécabine, parking avant 9 h 30, dernière descente à 17 h", "A"],
+  ["Difficulté de la rando", "~12 km, ~1 000 m D+, 6 à 7 h. « Difficile », câbles, chaînes, pierriers", "8,4 à 9 km, 450 à 500 m D+, 3 h à 3 h 30. « Moyenne », marches câblées avec du vide", "B"],
+  ["Risque fin octobre", "Verglas à l'ombre constaté le 11/10/2025, Tmin ~0 °C au lac, refuge probablement fermé", "Point haut ~1 940 m. Éboulement du Spitze Stei en août, zone interdite balisée, rien après mi-août", "B"],
+  ["Dépendance à la météo", "Forte : 24 % de risque de pluie (ECMWF), 35 % (GEFS). Rando à abandonner s'il a neigé", "Faible à moyenne : 14 % (ECMWF), 17 % (GEFS). Le lac reste accessible en télécabine", "B"],
+  ["Beauté", "« Randonnée unique », « Fitz Roy de Belledonne ». Lac au pied des Trois Pics", "Glaciers de la Blüemlisalp, boucle en balcon au-dessus du lac", "="],
+  ["Logement", "Plusieurs gîtes pour 5–6 personnes, prix d'appel, rien de réservé", "Airbnb à 380 € repéré, capacité à confirmer", "="],
+  ["Plan B sur place", "Lac du Crozet, lac Achard, lacs Robert", "Lac en direct, le Läger, la rive, dimanche en repli", "="],
+  ["Fatigue totale (voiture + marche)", "~19 h 10 à 21 h 40, surtout dans les jambes", "~19 h 30 à 21 h 20, surtout au volant", "="],
+  ["Repas", "Pique-nique, courses dans la vallée", "Pique-nique, restaurant du lac peut-être ouvert", "="],
+  ["Équipement à acheter", "Kit de base + module froid (61 à 97 €/pers.)", "Kit de base seul", "B"]
+];
+const PROS = {
+  proA: ["Le moins cher : 591 € pour le groupe en moyenne, soit 148 € par personne à 4.", "Ni frontière, ni vignette, ni train-autos, ni remontée. Parking a priori gratuit.", "Environ 2 h de route de moins sur le week-end.", "Site réputé : « randonnée unique » selon Destination Belledonne.", "Plan B solide dans le même massif : le Lac du Crozet.", "Pas d'heure de dernière remontée : jour jusqu'à 18 h 36 le samedi.", "Plusieurs gîtes pour 5–6 personnes, notés 4,9 à 4,96."],
+  conA: ["Rando difficile pour des débutants : ~1 000 m de montée, 6 à 7 h.", "Passages équipés de câbles et de chaînes, pierriers.", "Verglas à l'ombre possible, Tmin vers 0 °C au lac.", "Refuge Jean Collet probablement fermé.", "Piste en terre de 2 km avec ornières.", "Météo un peu moins favorable que pour l'Oeschinensee.", "Module froid à acheter (61 à 97 € par personne).", "Aucun prix de logement vérifié pour ces dates."],
+  proB: ["Rando adaptée au groupe : 450 à 500 m de dénivelé.", "Télécabine ouverte tous les jours jusqu'au 8 novembre.", "Repli très facile : le lac à 25 min de la station haute.", "Prévision un peu meilleure : 14 % de risque de pluie samedi.", "Altitude plus basse : deux fois moins de jours « froids et humides ».", "Logement déjà repéré, à 380 €.", "Le kit de base suffit."],
+  conB: ["Plus cher : 958 € pour le groupe en moyenne, soit 240 € par personne à 4.", "Plus de route : 6 h 40 l'aller, plus 2 à 3 h le samedi.", "Train-autos au guichet uniquement, attente possible le week-end.", "Contraintes horaires : créneau de télécabine, parking avant 9 h 30, dernière descente à 17 h.", "Éboulement du Spitze Stei en août, aucune information depuis.", "Marches câblées avec du vide entre Oberbärgli et Underbärgli.", "Restaurants d'altitude fermés : pique-nique.", "Logement en Valais à 55 à 90 min du départ."]
+};
+const SCORES = [
+  ["Temps de route", "≤ 10 h : 1 … > 16 h : 5", 3, 4],
+  ["Ruptures logistiques", "0–1 : 1 … ≥ 8 : 5", 2, 4],
+  ["Difficulté de la rando", "< 300 m : 1 … ≥ 1 000 m, > 6 h, exposé : 5", 5, 3],
+  ["Risque fin octobre", "négligeable : 1 … verglas probable sans abri : 5", 4, 2],
+  ["Dépendance à la météo", "tout temps : 1 … annulée si mauvais temps : 5", 4, 2],
+  ["Confort du logement", "réservé et spacieux : 1 … inadapté : 5", 3, 3],
+  ["Plan B", "plusieurs : 1 … aucun : 5", 2, 2],
+  ["Fatigue totale", "≤ 15 h : 1 … > 21 h : 5", 4, 4],
+  ["Repas", "resto sur l'itinéraire : 1 … courses difficiles : 3", 2, 2]
+];
+
+const fmt = n => Math.round(n).toLocaleString("fr-FR");
+const SVGNS = "http://www.w3.org/2000/svg";
+const sv = (t, a = {}) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+let people = 4;
+
+function drawChart() {
+  const svg = document.getElementById("chart"); svg.innerHTML = "";
+  const W = 760, L = 190, R = 30, top = 20, rowH = 60, x0 = 0, x1 = 300;
+  const X = v => L + (v - x0) / (x1 - x0) * (W - L - R);
+  for (let v = 0; v <= 300; v += 50) {
+    svg.append(sv("line", { x1: X(v), x2: X(v), y1: top - 6, y2: top + 2 * rowH, stroke: "var(--line)", "stroke-width": 1 }));
+    const t = sv("text", { x: X(v), y: top + 2 * rowH + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" }); t.textContent = v + " €"; svg.append(t);
+  }
+  const tip = document.getElementById("tip");
+  [["A", "Lac Blanc de Belledonne", "var(--cA)"], ["B", "Oeschinensee", "var(--cB)"]].forEach(([k, name, col], i) => {
+    const [mn, av, mx] = BUDGET[people][k].map(v => v / people);
+    const y = top + rowH * i + rowH / 2;
+    const lab = sv("text", { x: 0, y: y + 4, "font-size": 13, "font-weight": 600, fill: "var(--ink)" }); lab.textContent = name; svg.append(lab);
+    svg.append(sv("line", { x1: X(mn), x2: X(mx), y1: y, y2: y, stroke: col, "stroke-width": 2, "stroke-linecap": "round" }));
+    [mn, mx].forEach(v => svg.append(sv("line", { x1: X(v), x2: X(v), y1: y - 7, y2: y + 7, stroke: col, "stroke-width": 2, "stroke-linecap": "round" })));
+    svg.append(sv("circle", { cx: X(av), cy: y, r: 7, fill: col, stroke: "var(--card)", "stroke-width": 2 }));
+    const tv = sv("text", { x: X(av), y: y - 14, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "var(--ink)" }); tv.textContent = fmt(av) + " €"; svg.append(tv);
+    [[mn, "min"], [mx, "max"]].forEach(([v, l]) => { const t = sv("text", { x: X(v), y: y + 22, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" }); t.textContent = l + " " + fmt(v); svg.append(t); });
+    const hit = sv("rect", { x: X(mn) - 12, y: y - 22, width: X(mx) - X(mn) + 24, height: 44, fill: "transparent", tabindex: 0, "aria-label": `${name} : ${fmt(mn)} à ${fmt(mx)} € par personne, moyenne ${fmt(av)} €` });
+    const show = () => { tip.hidden = false; tip.innerHTML = `<b>${name}</b><br>Par personne à ${people} : min ${fmt(mn)} €, moyenne <b>${fmt(av)} €</b>, max ${fmt(mx)} €<br><span class="muted">Groupe : ${fmt(BUDGET[people][k][0])} – ${fmt(BUDGET[people][k][2])} €</span>`; const r = svg.getBoundingClientRect(); tip.style.left = Math.min(r.width - 250, Math.max(0, X(av) / W * r.width - 120)) + "px"; tip.style.top = ((y + 26) / 200 * r.height) + "px"; };
+    hit.addEventListener("mouseenter", show); hit.addEventListener("focus", show);
+    hit.addEventListener("mouseleave", () => tip.hidden = true); hit.addEventListener("blur", () => tip.hidden = true);
+    svg.append(hit);
+  });
+}
+function setPeople(n) { people = n; document.getElementById("p4").setAttribute("aria-pressed", n === 4); document.getElementById("p5").setAttribute("aria-pressed", n === 5); drawChart(); }
+document.getElementById("p4").addEventListener("click", () => setPeople(4));
+document.getElementById("p5").addEventListener("click", () => setPeople(5));
+
+document.getElementById("critBody").innerHTML = CRIT.map(([c, a, b, w]) => `<tr><td><b>${c}</b></td><td>${a}</td><td>${b}</td><td>${w === "A" ? '<span class="pill pA">A</span>' : w === "B" ? '<span class="pill pB">B</span>' : '<span class="pill info">égalité</span>'}</td></tr>`).join("");
+for (const id in PROS) document.getElementById(id).innerHTML = PROS[id].map(t => `<li>${t}</li>`).join("");
+const tA = SCORES.reduce((s, r) => s + r[2], 0), tB = SCORES.reduce((s, r) => s + r[3], 0);
+document.getElementById("scoreBody").innerHTML = SCORES.map(([c, b, a, o]) => `<tr><td>${c}</td><td class="small muted">${b}</td><td class="num">${a}</td><td class="num">${o}</td></tr>`).join("") + `<tr class="hl"><td><b>Total</b></td><td class="small muted">sur 45, plus bas = mieux</td><td class="num"><b>${tA}</b></td><td class="num"><b>${tB}</b></td></tr>`;
+drawChart();
+</script>
